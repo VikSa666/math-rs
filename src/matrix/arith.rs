@@ -16,20 +16,22 @@ where
     type Output = Result<GenericMatrix<T>>;
 
     fn add(self, rhs: Self) -> Self::Output {
-        if self.rows != rhs.rows || self.columns != rhs.columns {
+        if self.rows() != rhs.rows() || self.columns() != rhs.columns() {
             return Err(MathError::MatrixError(
                 "Matrices must be of the same size".to_string(),
             ));
         } else {
-            let mut result: Vec<T> = vec![];
-            for i in 0..self.rows {
-                for j in 0..self.columns {
+            let mut result: Vec<Vec<T>> = vec![];
+            for i in 0..self.rows() {
+                let mut result_row: Vec<T> = vec![];
+                for j in 0..self.columns() {
                     let left = self.get(i + 1, j + 1)?.to_owned();
                     let right = rhs.get(i + 1, j + 1)?.to_owned();
-                    result.push(left + right)
+                    result_row.push(left + right)
                 }
+                result.push(result_row)
             }
-            GenericMatrix::new(result, self.rows, self.columns)
+            GenericMatrix::new(result)
         }
     }
 }

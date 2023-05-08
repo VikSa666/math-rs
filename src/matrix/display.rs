@@ -9,8 +9,8 @@ use super::{
 
 impl<T: ArithmeticOperation<T> + Display> Display for GenericMatrix<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(for i in 0..self.rows {
-            for j in 0..self.columns {
+        Ok(for i in 0..self.rows() {
+            for j in 0..self.columns() {
                 write!(f, "{:+.12} ", self.get(i + 1, j + 1)?)?
             }
             write!(f, "\n")?
@@ -38,15 +38,23 @@ mod test {
     #[test]
     #[ignore]
     fn debug() {
-        let matrix = vec![11111.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9];
-        let matrix = GenericMatrix::new(matrix, 3, 3).unwrap();
+        let matrix = vec![
+            vec![11111.1, 2.2, 3.3],
+            vec![4.4, 5.5, 6.6],
+            vec![7.7, 8.8, 9.9],
+        ];
+        let matrix = GenericMatrix::new(matrix).unwrap();
         println!("{matrix}")
     }
 
     #[test]
     fn print_float() {
-        let matrix =
-            GenericMatrix::new(vec![1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9], 3, 3).unwrap();
+        let matrix = GenericMatrix::new(vec![
+            vec![1.1, 2.2, 3.3],
+            vec![4.4, 5.5, 6.6],
+            vec![7.7, 8.8, 9.9],
+        ])
+        .unwrap();
         let expected = "+1.100000000000 +2.200000000000 +3.300000000000 
 +4.400000000000 +5.500000000000 +6.600000000000 
 +7.700000000000 +8.800000000000 +9.900000000000 

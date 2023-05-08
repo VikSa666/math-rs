@@ -18,5 +18,6 @@ pub trait Matrix<T: ArithmeticOperation<T>> {
     fn rows(&self) -> usize;
     fn is_square(&self) -> bool;
     fn get(&self, row: usize, column: usize) -> Result<&T>;
+    fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut T>;
     fn set(&mut self, row: usize, column: usize, value: T) -> Result<()>;
 }
