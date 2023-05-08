@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        "*.S": "c",
+        "wiris_services_mtef_mathml.h": "c"
+    },
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer", // Makes the magic
+    },
+    "editor.formatOnSave": true,
+    "editor.detectIndentation": false,
+    "editor.tabSize": 4,
+    "rust-analyzer.restartServerOnConfigChange": true,
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "rust-analyzer.assist.expressionFillDefault": "default",
+    "rust-analyzer.cargo.buildScripts.enable": false,
+}
