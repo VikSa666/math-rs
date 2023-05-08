@@ -1,3 +1,7 @@
+mod ffi;
+mod matrix;
+pub mod result;
+
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
