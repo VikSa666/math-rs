@@ -1,7 +1,12 @@
 [package]
-name = "mathrs"
+name = "math-rs"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "A basic mathematical engine"
+homepage = "math-rs.rs"
+readme = "readme"
+repository = "https://github.com/VikSa666/mathrs"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
