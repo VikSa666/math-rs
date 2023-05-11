@@ -1,9 +1,6 @@
 mod result;
 
-use crate::{
-    matrix::{GenericMatrix, Parseable},
-    Matrix,
-};
+use crate::matrix::{matrix_usize, serialize_matrix, GenericMatrix, Matrix};
 use wasm_bindgen::prelude::*;
 
 /// Initialization function that automatically gets called when the module is loaded in WASM.
@@ -73,5 +70,15 @@ impl MatrixUsize {
     pub fn sum(matrix_a: MatrixUsize, matrix_b: MatrixUsize) -> Result<MatrixUsize, JsValue> {
         let sum = (matrix_a.inner + matrix_b.inner)?;
         Ok(MatrixUsize { inner: sum })
+    }
+
+    pub fn from_string(input: &str) -> Result<MatrixUsize, JsValue> {
+        Ok(MatrixUsize {
+            inner: matrix_usize!(input)?,
+        })
+    }
+
+    pub fn to_string(&self) -> String {
+        serialize_matrix(&self.inner)
     }
 }

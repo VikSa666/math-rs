@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::{
-    matrix::traits::Parseable,
+    matrix::Matrix,
     result::{MathError, Result},
 };
 
@@ -30,23 +30,49 @@ pub fn parse_matrix<T: ArithmeticallyOperable<T> + Display>(
     GenericMatrix::new(matrix)
 }
 
-impl<T: ArithmeticallyOperable<T> + Display> Parseable<T> for GenericMatrix<T> {
-    fn parse(expr: &str) -> Result<Self::Mat> {
-        parse_matrix::<T>(expr)
-    }
+pub fn serialize_matrix<T>(matrix: &GenericMatrix<T>) -> String
+where
+    T: ArithmeticallyOperable<T> + Display,
+{
+    let mut result = String::new();
+    let push_row = |res: &mut String, row_number: usize| {
+        res.push('{');
+        for j in 0..matrix.columns() - 1 {
+            // TODO: Remove this unwrap
+            res.push_str(matrix.get(row_number, j).unwrap().to_string().as_str());
+            res.push_str(", ")
+        }
+        res.push_str(
+            matrix
+                .get(row_number, matrix.columns() - 1)
+                .unwrap()
+                .to_string()
+                .as_str(),
+        );
+        res.push('}');
+    };
 
-    type Mat = GenericMatrix<T>;
+    result.push('{');
+    for i in 0..matrix.rows() - 1 {
+        push_row(&mut result, i);
+        result.push_str(", ");
+    }
+    push_row(&mut result, matrix.rows() - 1);
+
+    result.push('}');
+    result
 }
 
 #[cfg(test)]
 mod test {
-    use crate::matrix::traits::Parseable;
 
-    use super::GenericMatrix;
+    use std::str::FromStr;
+
+    use super::{serialize_matrix, GenericMatrix};
 
     #[test]
     fn parse_2x2() {
-        let matrix = GenericMatrix::<usize>::parse("{{1,2},{2,3}}")
+        let matrix = GenericMatrix::<usize>::from_str("{{1,2},{2,3}}")
             .expect("Should have been able to parse this matrix");
 
         println!("{matrix}");
@@ -59,7 +85,7 @@ mod test {
 
     #[test]
     fn parse_3x5() {
-        let matrix = GenericMatrix::<usize>::parse("{{1,2,3,4,5}, {5,4,3,2,1}, {0,0,0,0,0}}")
+        let matrix = GenericMatrix::<usize>::from_str("{{1,2,3,4,5}, {5,4,3,2,1}, {0,0,0,0,0}}")
             .expect("Should have been able to parse this matrix");
         println!("{matrix}");
         pretty_assertions::assert_eq!(
@@ -71,5 +97,11 @@ mod test {
             ])
             .expect("Should've been able to built this matrix")
         )
+    }
+
+    #[test]
+    fn serialize_2x2() {
+        let matrix = GenericMatrix::<f32>::new(vec![vec![1.1, 1.1], vec![1.1, 1.1]]).unwrap();
+        pretty_assertions::assert_str_eq!("{{1.1, 1.1}, {1.1, 1.1}}", serialize_matrix(&matrix))
     }
 }

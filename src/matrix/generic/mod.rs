@@ -8,9 +8,12 @@ use std::fmt::Display;
 
 use self::parser::parse_matrix;
 
+// TODO: remove this
+pub use self::parser::serialize_matrix;
+
 use super::traits::{ArithmeticallyOperable, Matrix};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GenericMatrix<T: ArithmeticallyOperable<T> + Display> {
     content: Vec<Vec<T>>,
 }
@@ -36,12 +39,10 @@ impl<T: ArithmeticallyOperable<T> + Display> Matrix<T> for GenericMatrix<T> {
         if row > self.rows() || column > self.columns() {
             return Err(MathError::MatrixError(format!("Cannot get element from position ({row},{column}) if the matrix has {}x{} dimensions!", self.rows(), self.columns())));
         }
-        let Some(matrix_row) = self.content.get(row-1) else {
+        let Some(matrix_row) = self.content.get(row) else {
             return Err(MathError::MatrixError(format!("Cannot get row {row} if the matrix has {}x{} dimensions!", self.rows(), self.columns())));
         };
-        matrix_row
-            .get(column - 1)
-            .ok_or(MathError::MatrixError(format!(
+        matrix_row.get(column).ok_or(MathError::MatrixError(format!(
             "Cannot get element from position ({row},{column}) if the matrix has {}x{} dimensions!",
             self.rows(),
             self.columns()
@@ -54,11 +55,11 @@ impl<T: ArithmeticallyOperable<T> + Display> Matrix<T> for GenericMatrix<T> {
         }
         let rows = self.rows();
         let columns = self.columns();
-        let Some(matrix_row) = self.content.get_mut(row-1) else {
+        let Some(matrix_row) = self.content.get_mut(row) else {
             return Err(MathError::MatrixError(format!("Cannot get row {row} if the matrix has {}x{} dimensions!", rows, columns)));
         };
         matrix_row
-            .get_mut(column - 1)
+            .get_mut(column)
             .ok_or(MathError::MatrixError(format!(
             "Cannot get element from position ({row},{column}) if the matrix has {}x{} dimensions!",
             rows,
@@ -69,12 +70,6 @@ impl<T: ArithmeticallyOperable<T> + Display> Matrix<T> for GenericMatrix<T> {
     fn set(&mut self, row: usize, column: usize, value: T) -> Result<()> {
         *self.get_mut(row, column)? = value;
         Ok(())
-    }
-}
-
-impl<T: ArithmeticallyOperable<T> + Display> PartialEq for GenericMatrix<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.content == other.content
     }
 }
 
@@ -91,6 +86,15 @@ impl<T: ArithmeticallyOperable<T> + Display> GenericMatrix<T> {
             }
         }
         Ok(Self { content })
+    }
+
+    pub fn zero_matrix_sized(rows: usize, columns: usize) -> Self {
+        let mut matrix = Vec::with_capacity(rows);
+        for _ in 0..rows {
+            let row = Vec::with_capacity(columns);
+            matrix.push(row)
+        }
+        GenericMatrix { content: matrix }
     }
 }
 
@@ -112,7 +116,7 @@ mod test {
     #[test]
     fn get_1() {
         let matrix = GenericMatrix::new(vec![vec![1, 2], vec![3, 4]]).unwrap();
-        let item = matrix.get(1, 2).unwrap();
+        let item = matrix.get(0, 1).unwrap();
         pretty_assertions::assert_eq!(item.clone(), 2)
     }
 
@@ -124,7 +128,7 @@ mod test {
             vec![7.7, 8.8, 9.9],
         ])
         .unwrap();
-        vec![((1, 1), 1.1), ((1, 3), 3.3), ((2, 2), 5.5), ((3, 1), 7.7)]
+        vec![((0, 0), 1.1), ((0, 2), 3.3), ((1, 1), 5.5), ((2, 0), 7.7)]
             .into_iter()
             .for_each(|item| {
                 pretty_assertions::assert_eq!(
