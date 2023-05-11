@@ -2,16 +2,13 @@ use std::{fmt::Display, ops::Add};
 
 use crate::result::{MathError, Result};
 
-use super::{
-    traits::{ArithmeticOperation, Matrix},
-    GenericMatrix,
-};
+use super::{ArithmeticallyOperable, GenericMatrix, Matrix};
 
 // impl<T> ArithmeticOperation<Result<Matrix<T>>> for Matrix<T> {}
 
 impl<T> Add for GenericMatrix<T>
 where
-    T: ArithmeticOperation<T> + Display,
+    T: ArithmeticallyOperable<T> + Display,
 {
     type Output = Result<GenericMatrix<T>>;
 

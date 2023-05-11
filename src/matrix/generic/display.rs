@@ -3,11 +3,10 @@
 use std::fmt::Display;
 
 use super::{
-    traits::{ArithmeticOperation, Matrix},
-    GenericMatrix,
+    GenericMatrix, {ArithmeticallyOperable, Matrix},
 };
 
-impl<T: ArithmeticOperation<T> + Display> Display for GenericMatrix<T> {
+impl<T: ArithmeticallyOperable<T> + Display> Display for GenericMatrix<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(for i in 0..self.rows() {
             for j in 0..self.columns() {
