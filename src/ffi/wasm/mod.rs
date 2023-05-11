@@ -1,6 +1,9 @@
 mod result;
 
-use crate::matrix::{GenericMatrix, Matrix};
+use crate::{
+    matrix::{GenericMatrix, Parseable},
+    Matrix,
+};
 use wasm_bindgen::prelude::*;
 
 /// Initialization function that automatically gets called when the module is loaded in WASM.
