@@ -10,7 +10,7 @@ impl<T: ArithmeticallyOperable<T> + Display> Display for GenericMatrix<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(for i in 0..self.rows() {
             for j in 0..self.columns() {
-                write!(f, "{:+.12} ", self.get(i + 1, j + 1)?)?
+                write!(f, "{:+.12} ", self.get(i, j)?)?
             }
             write!(f, "\n")?
         })
