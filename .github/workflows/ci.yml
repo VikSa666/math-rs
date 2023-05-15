@@ -1,4 +1,4 @@
-name: Continuous integration
+name: ci
 
 on:
   pull_request:
@@ -33,8 +33,10 @@ jobs:
           echo ${{ steps.changed-files.outputs.all_changed_files }}
 
   test-core:
-    name: Test Core
+    name: Test
     runs-on: ubuntu-latest
+
+    needs: changelog
 
     steps:
       - uses: actions/checkout@v2
