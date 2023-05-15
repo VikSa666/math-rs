@@ -11,7 +11,7 @@ exclude = [
     "dev/*", ".github/*", "makefile", ".vscode/*", ".gitignore"
 ]
 documentation = "https://docs.rs/math-rs"
-keywords = ["mathematics", "algebra", "math", "engine", "matrix", "vector", "equation"]
+keywords = ["mathematics", "algebra", "math",  "matrix"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
