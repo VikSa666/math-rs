@@ -1,2 +1,3 @@
-# mathrs
+# Mathrs
+
 A mathematical library
