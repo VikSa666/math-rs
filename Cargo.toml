@@ -7,9 +7,11 @@ description = "A basic mathematical engine"
 homepage = "math-rs.rs"
 readme = "readme"
 repository = "https://github.com/VikSa666/mathrs"
-include = [
-    "dev/**/*.js", "dev/**/*.html","dev/**/*.css", "**/*.rs", "Cargo.toml"  
+exclude = [
+    "dev/*"
 ]
+documentation = "https://docs.rs/math-rs"
+keywords = ["mathematics", "algebra", "math", "engine", "matrix", "vector", "equation"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
