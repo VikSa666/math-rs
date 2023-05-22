@@ -4,6 +4,8 @@ use std::{
     str::FromStr,
 };
 
+use num::{CheckedAdd, Zero};
+
 use crate::result::{MathError, Result};
 
 use super::{parser::parse_matrix, ArithmeticallyOperable, GenericMatrix, Matrix};
@@ -30,6 +32,44 @@ where
 {
     fn eq(&self, other: &Self) -> bool {
         self.content == other.content
+    }
+}
+
+impl<T> Zero for GenericMatrix<T>
+where
+    T: ArithmeticallyOperable<T> + Display,
+{
+    fn zero() -> Self {
+        GenericMatrix::new(vec![vec![T::zero(); 1]; 1]).unwrap()
+    }
+
+    fn is_zero(&self) -> bool {
+        self.content
+            .iter()
+            .all(|row| row.iter().all(|x| x.is_zero()))
+    }
+}
+
+impl<T> CheckedAdd for GenericMatrix<T>
+where
+    T: ArithmeticallyOperable<T> + Display,
+{
+    fn checked_add(&self, rhs: &Self) -> Option<Self> {
+        if self.rows() != rhs.rows() || self.columns() != rhs.columns() {
+            return None;
+        } else {
+            let mut result: Vec<Vec<T>> = vec![];
+            for i in 0..self.rows() {
+                let mut result_row: Vec<T> = vec![];
+                for j in 0..self.columns() {
+                    let left = self.get(i, j)?.to_owned();
+                    let right = rhs.get(i, j)?.to_owned();
+                    result_row.push(left.checked_add(&right)?)
+                }
+                result.push(result_row)
+            }
+            Some(GenericMatrix::new(result).unwrap())
+        }
     }
 }
 
