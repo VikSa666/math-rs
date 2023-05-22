@@ -2,7 +2,16 @@
 
 A mathematical library
 
-## Usage
+For now, only matrices calculator is implemented.
+
+## What you can do
+
+1. Calculate the sum, the substraction and the multiplication of matrices.
+2. Calculate the reduced matrix using Gauss Triangulation.
+3. Calculate the determinant matrix using both Gauss Triangulation and LU decomposition.
+4. Calculate the inverse of a matrix using the Gauss-Jordan method.
+
+## Usage in Rust
 
 Every matrix can be created using a macro that will parse a string represenging the matrix in the following way: `{{a11, a12, a13, ...}. {a21, a22, a23, ...}, ...}`. As each matrix can contain different type of numbers, you have to specify which type of number will you get: `matrix_<number_type>!("{{a11, a12, ...}, {a21, a22, ...}, ...}")`.
 
@@ -20,4 +29,56 @@ will print
 ```asdf
 +1.1000000 +2.2000000
 +2.1000000 +3.2000000
+```
+
+## Usage in Javascript or Typescript
+
+```ts
+const performSum = async () => {
+  await init();
+  result.value = RMatrixF32.checked_sum(
+    RMatrixF32.from_string(matA.value, 1e-6),
+    RMatrixF32.from_string(matB.value, 1e-6)
+  ).to_string();
+};
+
+const performSub = async () => {
+  await init();
+  result.value = RMatrixF32.checked_sub(
+    RMatrixF32.from_string(matA.value, 1e-6),
+    RMatrixF32.from_string(matB.value, 1e-6)
+  ).to_string();
+};
+
+const performMul = async () => {
+  await init();
+  result.value = RMatrixF32.checked_mul(
+    RMatrixF32.from_string(matA.value, 1e-6),
+    RMatrixF32.from_string(matB.value, 1e-6)
+  ).to_string();
+};
+
+const mat = ref("");
+const result2 = ref("Nothing yet...");
+
+const preformGaussReduction = async () => {
+  await init();
+  result2.value = RMatrixF32.from_string(mat.value, 1e-6)
+    .gaussian_triangulation()
+    .to_string();
+};
+
+const performGaussJordanDeterminant = async () => {
+  await init();
+  result2.value = RMatrixF32.from_string(mat.value, 1e-6)
+    .determinant_using_gauss()
+    .toString();
+};
+
+const performGaussJordanInverse = async () => {
+  await init();
+  result2.value = RMatrixF32.from_string(mat.value, 1e-6)
+    .inverse_gauss_jordan()
+    .to_string();
+};
 ```

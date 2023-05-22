@@ -1,12 +1,9 @@
 use std::str::FromStr;
 
 use crate::{
-    matrix::{
-        parser::parse_matrix,
-        traits::{
-            ArithmeticallyOperable, CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Identity,
-            Matrix, Zero,
-        },
+    matrix::traits::{
+        ArithmeticallyOperable, CheckedAdd, CheckedMul, CheckedSub, Identity, Matrix, Parseable,
+        Zero,
     },
     result::{MathError, Result},
 };
@@ -20,13 +17,20 @@ impl FromStr for MatrixF32 {
 
     /// Performs the conversion from a string to the matrix, with default tolerance 1e-12
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        parse_matrix(s, 1e-12)
+        Self::parse(s, 1e-12)
     }
 }
 
 impl PartialEq for MatrixF32 {
     fn eq(&self, other: &Self) -> bool {
-        self.content == other.content
+        for i in 0..self.rows() {
+            for j in 0..self.columns() {
+                if (self.get(i, j).unwrap() - other.get(i, j).unwrap()).abs() > self.tolerance() {
+                    return false;
+                }
+            }
+        }
+        true
     }
 }
 
@@ -131,108 +135,102 @@ impl CheckedMul for MatrixF32 {
     }
 }
 
-impl CheckedDiv for MatrixF32 {
-    type Output = Result<MatrixF32>;
-
-    fn checked_div(&self, rhs: &Self) -> Self::Output {
-        todo!()
-    }
-}
-
 #[cfg(test)]
 mod test {
     use crate::matrix::float::f32::MatrixF32;
-    use crate::matrix::traits::{CheckedAdd, CheckedMul, CheckedSub};
+    use crate::matrix::traits::{CheckedAdd, CheckedSub, Parseable, CheckedMul};
     use crate::matrix_f32;
+
+    const TOL: f32 = 1e-12;
 
     #[test]
     fn add_2x2_f32() {
-        let mat_a = matrix_f32!("{{1,1},{1,1}}").unwrap();
-        let mat_b = matrix_f32!("{{2,2},{2,2}}").unwrap();
+        let mat_a = matrix_f32!("{{1,1},{1,1}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{{2,2},{2,2}}", TOL).unwrap();
         let computed = mat_a.checked_add(&mat_b).unwrap();
-        let expected = matrix_f32!("{{3,3},{3,3}}").unwrap();
+        let expected = matrix_f32!("{{3,3},{3,3}}", TOL).unwrap();
 
         pretty_assertions::assert_eq!(computed, expected)
     }
 
     #[test]
     fn add_3x5_f32() {
-        let mat_a = matrix_f32!("{{1,1,1,1,1}, {2,2,2,2,2}, {3,3,3,3,3}}").unwrap();
-        let mat_b = matrix_f32!("{ {3,3,3,3,3},{2,2,2,2,2},  {1,1,1,1,1}}").unwrap();
+        let mat_a = matrix_f32!("{{1,1,1,1,1}, {2,2,2,2,2}, {3,3,3,3,3}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{ {3,3,3,3,3},{2,2,2,2,2},  {1,1,1,1,1}}", TOL).unwrap();
         let computed = mat_a.checked_add(&mat_b).unwrap();
-        let expected = matrix_f32!("{{4,4,4,4,4},{4,4,4,4,4},{4,4,4,4,4}}").unwrap();
+        let expected = matrix_f32!("{{4,4,4,4,4},{4,4,4,4,4},{4,4,4,4,4}}", TOL).unwrap();
 
         pretty_assertions::assert_eq!(computed, expected)
     }
 
     #[test]
     fn add_different_rows_should_fail() {
-        let mat_a = matrix_f32!("{{1,1},{1,1}}").unwrap();
-        let mat_b = matrix_f32!("{{2,2},{2,2}, {2,2}}").unwrap();
+        let mat_a = matrix_f32!("{{1,1},{1,1}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{{2,2},{2,2}, {2,2}}", TOL).unwrap();
         let computed = mat_a.checked_add(&mat_b);
         assert!(computed.is_err())
     }
 
     #[test]
     fn add_different_cols_should_fail() {
-        let mat_a = matrix_f32!("{{1,1,1},{1,1,1}}").unwrap();
-        let mat_b = matrix_f32!("{{2,2},{2,2}}").unwrap();
+        let mat_a = matrix_f32!("{{1,1,1},{1,1,1}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{{2,2},{2,2}}", TOL).unwrap();
         let computed = mat_a.checked_add(&mat_b);
         assert!(computed.is_err())
     }
 
     #[test]
     fn sub_2x2_f32() {
-        let mat_a = matrix_f32!("{{1,1},{1,1}}").unwrap();
-        let mat_b = matrix_f32!("{{2,2},{2,2}}").unwrap();
+        let mat_a = matrix_f32!("{{1,1},{1,1}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{{2,2},{2,2}}", TOL).unwrap();
         let computed = mat_a.checked_sub(&mat_b).unwrap();
-        let expected = matrix_f32!("{{-1,-1},{-1,-1}}").unwrap();
+        let expected = matrix_f32!("{{-1,-1},{-1,-1}}", TOL).unwrap();
 
         pretty_assertions::assert_eq!(computed, expected)
     }
 
     #[test]
     fn sub_3x5_f32() {
-        let mat_a = matrix_f32!("{{1,1,1,1,1}, {2,2,2,2,2}, {3,3,3,3,3}}").unwrap();
-        let mat_b = matrix_f32!("{ {3,3,3,3,3},{2,2,2,2,2},  {1,1,1,1,1}}").unwrap();
+        let mat_a = matrix_f32!("{{1,1,1,1,1}, {2,2,2,2,2}, {3,3,3,3,3}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{ {3,3,3,3,3},{2,2,2,2,2},  {1,1,1,1,1}}", TOL).unwrap();
         let computed = mat_a.checked_sub(&mat_b).unwrap();
-        let expected = matrix_f32!("{{-2,-2,-2,-2,-2},{0,0,0,0,0},{2,2,2,2,2}}").unwrap();
+        let expected = matrix_f32!("{{-2,-2,-2,-2,-2},{0,0,0,0,0},{2,2,2,2,2}}", TOL).unwrap();
 
         pretty_assertions::assert_eq!(computed, expected)
     }
 
     #[test]
     fn sub_different_rows_should_fail() {
-        let mat_a = matrix_f32!("{{1,1},{1,1}}").unwrap();
-        let mat_b = matrix_f32!("{{2,2},{2,2}, {2,2}}").unwrap();
+        let mat_a = matrix_f32!("{{1,1},{1,1}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{{2,2},{2,2}, {2,2}}", TOL).unwrap();
         let computed = mat_a.checked_sub(&mat_b);
         assert!(computed.is_err())
     }
 
     #[test]
     fn sub_different_cols_should_fail() {
-        let mat_a = matrix_f32!("{{1,1,1},{1,1,1}}").unwrap();
-        let mat_b = matrix_f32!("{{2,2},{2,2}}").unwrap();
+        let mat_a = matrix_f32!("{{1,1,1},{1,1,1}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{{2,2},{2,2}}", TOL).unwrap();
         let computed = mat_a.checked_sub(&mat_b);
         assert!(computed.is_err())
     }
 
     #[test]
     fn mul_2x2_f32() {
-        let mat_a = matrix_f32!("{{1,1},{1,1}}").unwrap();
-        let mat_b = matrix_f32!("{{2,2},{2,2}}").unwrap();
+        let mat_a = matrix_f32!("{{1,1},{1,1}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{{2,2},{2,2}}", TOL).unwrap();
         let computed = mat_a.checked_mul(&mat_b).unwrap();
-        let expected = matrix_f32!("{{4,4},{4,4}}").unwrap();
+        let expected = matrix_f32!("{{4,4},{4,4}}", TOL).unwrap();
 
         pretty_assertions::assert_eq!(computed, expected)
     }
 
     #[test]
     fn mul_3x5x2_f32() {
-        let mat_a = matrix_f32!("{{1,2,1,2,1}, {-1,2,-3,2,1}, {0,1,-3,2,1}}").unwrap();
-        let mat_b = matrix_f32!("{{1,1}, {2,2}, {-1,-1}, {-2,-2}, {0,1}}").unwrap();
+        let mat_a = matrix_f32!("{{1,2,1,2,1}, {-1,2,-3,2,1}, {0,1,-3,2,1}}", TOL).unwrap();
+        let mat_b = matrix_f32!("{{1,1}, {2,2}, {-1,-1}, {-2,-2}, {0,1}}", TOL).unwrap();
         let computed = mat_a.checked_mul(&mat_b).unwrap();
-        let expected = matrix_f32!("{{0,1},{2,3},{1,2}}").unwrap();
+        let expected = matrix_f32!("{{0,1},{2,3},{1,2}}", TOL).unwrap();
 
         pretty_assertions::assert_eq!(computed, expected)
     }

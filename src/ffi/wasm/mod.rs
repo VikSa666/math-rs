@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::{
     matrix::{
-        traits::{CheckedAdd, Matrix},
+        traits::{CheckedAdd, CheckedMul, CheckedSub, Invertible, Matrix, Parseable, Serializable},
         MatrixF32,
     },
     matrix_f32,
@@ -55,12 +55,6 @@ impl RMatrixF32 {
             Err(error) => Err(JsValue::from(error)),
         }
     }
-    //     let inner = GenericMatrix::new(content);
-    //     match inner {
-    //         Ok(inner) => Ok(MatrixF32 { inner }),
-    //         Err(error) => Err(JsValue::from(error)),
-    //     }
-    // }
 
     #[wasm_bindgen(getter)]
     pub fn rows(&self) -> usize {
@@ -82,13 +76,49 @@ impl RMatrixF32 {
         Ok(RMatrixF32 { inner: sum })
     }
 
-    pub fn from_string(input: &str) -> Result<RMatrixF32, JsValue> {
+    pub fn checked_sub(matrix_a: RMatrixF32, matrix_b: RMatrixF32) -> Result<RMatrixF32, JsValue> {
+        let sub = matrix_a.inner.checked_sub(&matrix_b.inner)?;
+        Ok(RMatrixF32 { inner: sub })
+    }
+
+    pub fn checked_mul(matrix_a: RMatrixF32, matrix_b: RMatrixF32) -> Result<RMatrixF32, JsValue> {
+        let mul = matrix_a.inner.checked_mul(&matrix_b.inner)?;
+        Ok(RMatrixF32 { inner: mul })
+    }
+
+    pub fn from_string(input: &str, tolerance: f32) -> Result<RMatrixF32, JsValue> {
         Ok(RMatrixF32 {
-            inner: matrix_f32!(input)?,
+            inner: matrix_f32!(input, tolerance)?,
         })
     }
 
     pub fn to_string(&self) -> String {
         self.inner.serialize()
+    }
+
+    pub fn gaussian_triangulation(&self) -> Result<RMatrixF32, JsValue> {
+        let result = self.inner.gaussian_triangulation()?;
+        Ok(RMatrixF32 { inner: result })
+    }
+
+    pub fn determinant_using_gauss(&self) -> Result<f32, JsValue> {
+        let result = self
+            .inner
+            .determinant_using_gauss()
+            .ok_or("Matrix is not square!")?;
+        Ok(result)
+    }
+
+    pub fn determinant_using_lu(&self) -> Result<f32, JsValue> {
+        let result = self
+            .inner
+            .determinant_using_lu()
+            .ok_or("Matrix is not square!")?;
+        Ok(result)
+    }
+
+    pub fn inverse_gauss_jordan(&self) -> Result<RMatrixF32, JsValue> {
+        let result = self.inner.inverse_gauss_jordan()?;
+        Ok(RMatrixF32 { inner: result })
     }
 }

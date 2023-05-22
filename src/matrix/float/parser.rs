@@ -1,9 +1,21 @@
 use crate::{
-    matrix::traits::Matrix,
+    matrix::traits::{Matrix, Parseable, Serializable},
     result::{MathError, Result},
 };
 
-use super::float::MatrixF32;
+use super::MatrixF32;
+
+impl Parseable for MatrixF32 {
+    fn parse(input: &str, tolerance: f32) -> Result<Self> {
+        parse_matrix(input, tolerance)
+    }
+}
+
+impl Serializable for MatrixF32 {
+    fn serialize(&self) -> String {
+        serialize_matrix(self)
+    }
+}
 
 pub fn parse_matrix(input: &str, tolerance: f32) -> Result<MatrixF32> {
     let mut matrix = vec![];

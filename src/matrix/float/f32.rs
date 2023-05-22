@@ -1,8 +1,6 @@
 use crate::result::{MathError, Result};
 
-use crate::matrix::parser::{parse_matrix, serialize_matrix};
-
-use crate::matrix::traits::{Matrix, Zero};
+use crate::matrix::traits::{Identity, Matrix, Parseable};
 
 #[derive(Debug, Clone)]
 pub struct MatrixF32 {
@@ -12,8 +10,8 @@ pub struct MatrixF32 {
 
 #[macro_export]
 macro_rules! matrix_f32 {
-    ($expression:tt) => {
-        MatrixF32::try_from($expression)
+    ($expression:tt, $tol:expr) => {
+        MatrixF32::parse($expression, $tol)
     };
 }
 pub use matrix_f32;
@@ -98,10 +96,6 @@ impl Matrix for MatrixF32 {
         Ok(())
     }
 
-    fn serialize(&self) -> String {
-        serialize_matrix(self)
-    }
-
     fn transpose(&self) -> Self {
         let mut new_matrix = self.clone(); // Clone as we want a new matrix
         for i in 0..self.rows() {
@@ -114,7 +108,7 @@ impl Matrix for MatrixF32 {
         new_matrix
     }
 
-    fn gaussian_elimination(&self) -> Result<Self> {
+    fn gaussian_triangulation(&self) -> Result<Self> {
         let mut new_matrix = self.clone();
         for i in 0..self.rows() {
             let mut max_row = i;
@@ -142,9 +136,33 @@ impl Matrix for MatrixF32 {
         Ok(new_matrix)
     }
 
-    fn determinant(&self) -> Option<Self::T> {
-        let gaussian_elimination_result = self.gaussian_elimination().ok()?;
-        let mut mult = Self::T::zero(0, 0, self.tolerance());
+    fn lu_decomposition(&self) -> Result<(Self, Self)> {
+        if !self.is_square() {
+            return Err(MathError::MatrixError(
+                "Cannot perform LU decomposition on a non-square matrix".to_string(),
+            ));
+        }
+        let mut lower = Self::id(self.rows(), self.tolerance());
+        let mut upper = self.clone();
+        for i in 0..self.rows() {
+            for j in 0..self.columns() {
+                if j < i {
+                    let factor = upper.get(i, j).unwrap() / upper.get(j, j).unwrap();
+                    lower.set(i, j, factor).unwrap();
+                    for k in j..self.columns() {
+                        let new_value =
+                            upper.get(i, k).unwrap() - factor * upper.get(j, k).unwrap();
+                        upper.set(i, k, new_value).unwrap();
+                    }
+                }
+            }
+        }
+        Ok((lower, upper))
+    }
+
+    fn determinant_using_gauss(&self) -> Option<Self::T> {
+        let gaussian_elimination_result = self.gaussian_triangulation().ok()?;
+        let mut mult = Self::T::id(0, 0.0);
         for i in 0..gaussian_elimination_result.rows() {
             for j in 0..gaussian_elimination_result.columns() {
                 if i == j {
@@ -154,6 +172,24 @@ impl Matrix for MatrixF32 {
             }
         }
         Some(mult)
+    }
+
+    fn determinant_using_lu(&self) -> Option<Self::T> {
+        let (_, upper) = self.lu_decomposition().ok()?;
+        let mut mult = Self::T::id(0, 0.0);
+        for i in 0..self.rows() {
+            for j in 0..self.columns() {
+                if i == j {
+                    let upper_value = upper.get(i, j).unwrap();
+                    mult = mult * *upper_value;
+                }
+            }
+        }
+        Some(mult)
+    }
+
+    fn cholesky_decomposition(&self) -> Result<Self> {
+        todo!("To be done");
     }
 }
 
@@ -178,9 +214,9 @@ impl MatrixF32 {
 }
 
 impl TryFrom<&str> for MatrixF32 {
-    /// Performs the conversion from a string to the matrix, with default tolerance 1e-12
+    /// Performs the conversion from a string to the matrix, with default tolerance 1e-4
     fn try_from(value: &str) -> Result<Self> {
-        parse_matrix(value, 1e-12)
+        MatrixF32::parse(value, 1e-4)
     }
 
     type Error = MathError;
@@ -188,7 +224,7 @@ impl TryFrom<&str> for MatrixF32 {
 
 #[cfg(test)]
 mod test {
-    use crate::matrix::traits::{CheckedAdd, Matrix};
+    use crate::matrix::traits::{Matrix, Parseable, CheckedAdd};
 
     use super::{matrix_f32, MatrixF32};
     use pretty_assertions;
@@ -234,42 +270,77 @@ mod test {
 
     #[test]
     fn create_matrix_from_macro_1() {
-        let matrix =
-            matrix_f32!("{{1,2},{3,4}}").expect("Should have been able to build matrix from macro");
+        let matrix = matrix_f32!("{{1,2},{3,4}}", TOLERANCE)
+            .expect("Should have been able to build matrix from macro");
         println!("{matrix}");
-        let other = MatrixF32::try_from("{{1,2},{3,4}}").expect("asdf");
+        let other = matrix_f32!("{{1,2},{3,4}}", TOLERANCE).expect("asdf");
         pretty_assertions::assert_eq!(matrix, other)
     }
 
     #[test]
     fn sum_with_macro() {
-        let result = (matrix_f32!("{{1,1},{1,1}}")
+        let result = (matrix_f32!("{{1,1},{1,1}}", TOLERANCE)
             .expect("asdf")
-            .checked_add(&matrix_f32!("{{2,2},{2,2}}").expect("asdf")))
+            .checked_add(&matrix_f32!("{{2,2},{2,2}}", TOLERANCE).expect("asdf")))
         .expect("asdf");
         println!("{result}")
     }
 
     #[test]
     fn gaussian_elimination_1() {
-        let matrix = matrix_f32!("{{1,2,3},{4,5,6},{7,8,9}}").expect("asdf");
-        let gauss = matrix.gaussian_elimination().expect("asdf");
+        let matrix = matrix_f32!("{{1,2,3},{4,5,6},{7,8,9}}", TOLERANCE).expect("asdf");
+        let gauss = matrix.gaussian_triangulation().expect("asdf");
         pretty_assertions::assert_eq!(
             gauss,
             matrix_f32!(
                 "{{+7.0000000000000, +8.0000000000000, +9.0000000000000},
                 {+0.0000000000000, +0.8571428060532, +1.7142856121063 },
-                {+0.0000000000000, +0.0000000000000, +0.0000000000000}}"
+                {+0.0000000000000, +0.0000000000000, +0.0000000000000}}",
+                TOLERANCE
             )
             .expect("asdf")
         );
     }
 
     #[test]
+    fn gaussian_elimination_2() {
+        let matrix =
+            matrix_f32!("{{1,2,1,2,1},{-1,2,-3,2,1},{0,1,-3,2,1}}", TOLERANCE).expect("asdf");
+        let gauss = matrix.gaussian_triangulation().expect("asdf");
+        pretty_assertions::assert_eq!(
+            gauss,
+            matrix_f32!("{{1,2,1,2,1},{0,4,-2,4,2},{0,0,-2.5,1,0.5}}", TOLERANCE).expect("asdf")
+        );
+    }
+
+    #[test]
+    fn lu_decomposition_1() {
+        let matrix = matrix_f32!("{{1,2,3},{4,5,6},{7,8,9}}", TOLERANCE).expect("asdf");
+        let (l, u) = matrix.lu_decomposition().expect("asdf");
+        pretty_assertions::assert_eq!(
+            l,
+            matrix_f32!("{{1,0,0},{4,1,0},{7,2,1}}", TOLERANCE).expect("asdf")
+        );
+        pretty_assertions::assert_eq!(
+            u,
+            matrix_f32!("{{1,2,3},{0,-3,-6},{0,0,0}}", TOLERANCE).expect("asdf")
+        );
+    }
+
+    #[test]
     fn determinant_1() {
-        let matrix = matrix_f32!("{{1,2,3},{4,5,6},{7,8,9}}").expect("asdf");
-        let determinant = matrix.determinant().expect("asdf");
+        let matrix = matrix_f32!("{{1,2,3},{4,5,6},{7,8,9}}", TOLERANCE).expect("asdf");
+        let determinant = matrix.determinant_using_gauss().expect("asdf");
         pretty_assertions::assert_eq!(determinant, 0f32);
-        println!("{determinant}")
+    }
+
+    #[test]
+    fn determinant_using_lu_1() {
+        let matrix = matrix_f32!("{{1,2,3},{4,5,6},{7,8,1}}", TOLERANCE).expect("asdf");
+        let (lower, upper) = matrix.lu_decomposition().expect("asdf");
+        println!("{lower}");
+        println!("{upper}");
+        let determinant = matrix.determinant_using_lu().expect("asdf");
+        pretty_assertions::assert_eq!(determinant, 24f32);
     }
 }
