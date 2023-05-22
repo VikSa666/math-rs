@@ -1,15 +1,11 @@
-use std::fmt::Display;
-
 use crate::{
-    matrix::Matrix,
+    matrix::traits::Matrix,
     result::{MathError, Result},
 };
 
-use super::{ArithmeticallyOperable, GenericMatrix};
+use super::float::MatrixF32;
 
-pub fn parse_matrix<T: ArithmeticallyOperable<T> + Display>(
-    input: &str,
-) -> Result<GenericMatrix<T>> {
+pub fn parse_matrix(input: &str, tolerance: f32) -> Result<MatrixF32> {
     let mut matrix = vec![];
     let processed_input = input.trim().split_whitespace().collect::<String>();
     let inner = processed_input
@@ -19,21 +15,18 @@ pub fn parse_matrix<T: ArithmeticallyOperable<T> + Display>(
     for row_str in inner.split("},{") {
         let row = row_str
             .split(',')
-            .map(|s| -> Result<T> {
+            .map(|s| -> Result<f32> {
                 s.parse().map_err(|_| {
                     MathError::MatrixError(format!("Could not parse matrix due to parsing error",))
                 })
             })
-            .collect::<Result<Vec<T>>>()?;
+            .collect::<Result<Vec<f32>>>()?;
         matrix.push(row);
     }
-    GenericMatrix::new(matrix)
+    MatrixF32::new(matrix, tolerance)
 }
 
-pub fn serialize_matrix<T>(matrix: &GenericMatrix<T>) -> String
-where
-    T: ArithmeticallyOperable<T> + Display,
-{
+pub fn serialize_matrix(matrix: &MatrixF32) -> String {
     let mut result = String::new();
     let push_row = |res: &mut String, row_number: usize| {
         res.push('{');
@@ -68,40 +61,45 @@ mod test {
 
     use std::str::FromStr;
 
-    use super::{serialize_matrix, GenericMatrix};
+    use super::{serialize_matrix, MatrixF32};
+
+    const TOLERANCE: f32 = 1E-12;
 
     #[test]
     fn parse_2x2() {
-        let matrix = GenericMatrix::<usize>::from_str("{{1,2},{2,3}}")
+        let matrix = MatrixF32::from_str("{{1,2},{2,3}}")
             .expect("Should have been able to parse this matrix");
 
         println!("{matrix}");
         pretty_assertions::assert_eq!(
             matrix,
-            GenericMatrix::new(vec![vec![1, 2], vec![2, 3]])
+            MatrixF32::new(vec![vec![1.0, 2.0], vec![2.0, 3.0]], TOLERANCE)
                 .expect("Should've been able to built this matrix")
         )
     }
 
     #[test]
     fn parse_3x5() {
-        let matrix = GenericMatrix::<usize>::from_str("{{1,2,3,4,5}, {5,4,3,2,1}, {0,0,0,0,0}}")
+        let matrix = MatrixF32::from_str("{{1,2,3,4,5}, {5,4,3,2,1}, {0,0,0,0,0}}")
             .expect("Should have been able to parse this matrix");
         println!("{matrix}");
         pretty_assertions::assert_eq!(
             matrix,
-            GenericMatrix::new(vec![
-                vec![1, 2, 3, 4, 5],
-                vec![5, 4, 3, 2, 1],
-                vec![0, 0, 0, 0, 0]
-            ])
+            MatrixF32::new(
+                vec![
+                    vec![1.0, 2.0, 3.0, 4.0, 5.0],
+                    vec![5.0, 4.0, 3.0, 2.0, 1.0],
+                    vec![0.0, 0.0, 0.0, 0.0, 0.0]
+                ],
+                TOLERANCE
+            )
             .expect("Should've been able to built this matrix")
         )
     }
 
     #[test]
     fn serialize_2x2() {
-        let matrix = GenericMatrix::<f32>::new(vec![vec![1.1, 1.1], vec![1.1, 1.1]]).unwrap();
+        let matrix = MatrixF32::new(vec![vec![1.1, 1.1], vec![1.1, 1.1]], TOLERANCE).unwrap();
         pretty_assertions::assert_str_eq!("{{1.1, 1.1}, {1.1, 1.1}}", serialize_matrix(&matrix))
     }
 }
