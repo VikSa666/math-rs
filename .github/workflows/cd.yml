@@ -78,7 +78,7 @@ jobs:
       - name: Build WASM
         working-directory: ./
         shell: bash
-        run: wasm-pack build --target web --scope viksa666
+        run: wasm-pack build --target web --scope viksa
 
       - name: Echo package
         working-directory: ./pkg
