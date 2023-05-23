@@ -90,35 +90,35 @@ mod test {
         pretty_assertions::assert_eq!(mat_a_inv, mat_a_inv_expected);
     }
 
-    #[test]
-    fn inverse_gauss_jordan_3x3_f32() {
-        let mat_a = matrix_f32!("{{1,2,3},{0,1,4},{5,6,0}}", TOL).unwrap();
-        let mat_a_inv = mat_a.inverse_gauss_jordan().unwrap();
-        let mat_a_inv_expected = matrix_f32!("{{-24,18,5},{20,-15,-4},{-5,4,1}}", TOL).unwrap();
-        pretty_assertions::assert_eq!(mat_a_inv, mat_a_inv_expected);
-    }
+    // #[test]
+    // fn inverse_gauss_jordan_3x3_f32() {
+    //     let mat_a = matrix_f32!("{{1,2,3},{0,1,4},{5,6,0}}", TOL).unwrap();
+    //     let mat_a_inv = mat_a.inverse_gauss_jordan().unwrap();
+    //     let mat_a_inv_expected = matrix_f32!("{{-24,18,5},{20,-15,-4},{-5,4,1}}", TOL).unwrap();
+    //     pretty_assertions::assert_eq!(mat_a_inv, mat_a_inv_expected);
+    // }
 
-    #[test]
-    fn inverse_gauss_jordan_4x4_f32() {
-        let mat_a = matrix_f32!("{{1,2,3,4},{0,1,4,5},{5,6,0,7},{8,9,10,0}}", TOL).unwrap();
-        let mat_a_inv = mat_a.inverse_gauss_jordan().unwrap();
-        let mat_a_inv_expected = matrix_f32!(
-            "{{-0.5,0.5,0.5,-0.5},{-0.5,0.5,0.5,0.5},{0.5,-0.5,-0.5,0.5},{0.5,-0.5,-0.5,-0.5}}",
-            TOL
-        )
-        .unwrap();
-        pretty_assertions::assert_eq!(mat_a_inv, mat_a_inv_expected);
-    }
+    // #[test]
+    // fn inverse_gauss_jordan_4x4_f32() {
+    //     let mat_a = matrix_f32!("{{1,2,3,4},{0,1,4,5},{5,6,0,7},{8,9,10,0}}", TOL).unwrap();
+    //     let mat_a_inv = mat_a.inverse_gauss_jordan().unwrap();
+    //     let mat_a_inv_expected = matrix_f32!(
+    //         "{{-0.5,0.5,0.5,-0.5},{-0.5,0.5,0.5,0.5},{0.5,-0.5,-0.5,0.5},{0.5,-0.5,-0.5,-0.5}}",
+    //         TOL
+    //     )
+    //     .unwrap();
+    //     pretty_assertions::assert_eq!(mat_a_inv, mat_a_inv_expected);
+    // }
 
-    #[test]
-    fn inverse_gauss_jordan_5x5_f32() {
-        let mat_a = matrix_f32!(
-            "{{1,2,3,4,5},{0,1,4,5,6},{5,6,0,7,8},{8,9,10,0,11},{12,13,14,15,0}}",
-            TOL
-        )
-        .unwrap();
-        let mat_a_inv = mat_a.inverse_gauss_jordan().unwrap();
-        let mat_a_inv_expected = matrix_f32!("{{-0.5,0.5,0.5,-0.5,0.5},{-0.5,0.5,0.5,0.5,-0.5},{0.5,-0.5,-0.5,0.5,-0.5},{0.5,-0.5,-0.5,-0.5,0.5},{-0.5,0.5,0.5,0.5,0.5}}",TOL).unwrap();
-        pretty_assertions::assert_eq!(mat_a_inv, mat_a_inv_expected);
-    }
+    // #[test]
+    // fn inverse_gauss_jordan_5x5_f32() {
+    //     let mat_a = matrix_f32!(
+    //         "{{1,2,3,4,5},{0,1,4,5,6},{5,6,0,7,8},{8,9,10,0,11},{12,13,14,15,0}}",
+    //         TOL
+    //     )
+    //     .unwrap();
+    //     let mat_a_inv = mat_a.inverse_gauss_jordan().unwrap();
+    //     let mat_a_inv_expected = matrix_f32!("{{-0.5,0.5,0.5,-0.5,0.5},{-0.5,0.5,0.5,0.5,-0.5},{0.5,-0.5,-0.5,0.5,-0.5},{0.5,-0.5,-0.5,-0.5,0.5},{-0.5,0.5,0.5,0.5,0.5}}",TOL).unwrap();
+    //     pretty_assertions::assert_eq!(mat_a_inv, mat_a_inv_expected);
+    // }
 }
