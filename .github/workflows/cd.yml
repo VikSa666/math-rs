@@ -60,7 +60,7 @@ jobs:
   publish-wasm:
     name: Publish WASM to NPM
     runs-on: ubuntu-latest
-    needs: publish-crate
+    needs: build
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
