@@ -96,4 +96,4 @@ jobs:
         run: |
           npm publish --access public
         env:
-          NPM_AUTOMATION_TOKEN: ${{ inputs.NPM_AUTOMATION_TOKEN }}
+          NPM_AUTOMATION_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
