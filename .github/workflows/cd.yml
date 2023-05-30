@@ -57,7 +57,7 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-  build-wasm:
+  publish-npm:
     name: Build WASM and publis to npm
     runs-on: ubuntu-latest
     needs: build
@@ -91,7 +91,8 @@ jobs:
           cat package.json
 
       # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v3
+      - name: Set up .npmrc
+        uses: actions/setup-node@v3
         with:
           node-version: "16.x"
           registry-url: "https://registry.npmjs.org"
