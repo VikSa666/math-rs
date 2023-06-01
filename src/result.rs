@@ -1,6 +1,8 @@
 #[derive(Debug)]
 pub enum MathError {
     MatrixError(String),
+    PolynomialError(String),
+    DivisionByZero,
 }
 
 pub type Result<T> = core::result::Result<T, MathError>;

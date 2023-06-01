@@ -3,11 +3,9 @@ mod result;
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    matrix::{
-        traits::{CheckedAdd, CheckedMul, CheckedSub, Invertible, Matrix, Parseable, Serializable},
-        MatrixF32,
-    },
+    matrix::{Invertible, Matrix, MatrixF32, Parseable, Serializable},
     matrix_f32,
+    traits::{CheckedAdd, CheckedMul, CheckedSub},
 };
 
 // TODO: change this and make it a passable parameter
