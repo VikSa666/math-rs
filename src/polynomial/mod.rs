@@ -4,6 +4,7 @@ use crate::MathError;
 
 mod arith;
 mod newton;
+mod scalar;
 
 /// Representation of a polynomial by just saving its coefficients.
 ///
