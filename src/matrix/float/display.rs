@@ -2,7 +2,7 @@
 
 use std::fmt::Display;
 
-use crate::matrix::traits::Matrix;
+use crate::matrix::Matrix;
 
 use super::MatrixF32;
 

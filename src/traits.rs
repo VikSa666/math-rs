@@ -11,13 +11,8 @@ use crate::{result::Result, MathError};
 /// - The `FromStr` trait, which is automatically implemented for any type that implements `FromStr`.
 /// - The `Zero` trait, which will indicate how the zero element of the type is represented.
 /// - The `Identity` trait, which will indicate how the identity element of the type is represented.
-pub trait ArithmeticallyOperable<T>:
+pub trait ArithmeticallyOperable:
     CheckedAdd + CheckedSub + CheckedMul + Sized + Clone + PartialEq + FromStr + Zero + Identity
-{
-}
-
-impl<T> ArithmeticallyOperable<T> for T where
-    T: CheckedAdd + CheckedSub + CheckedMul + Sized + Clone + PartialEq + FromStr + Zero + Identity
 {
 }
 
@@ -245,71 +240,12 @@ macro_rules! impl_identity {
 
 impl_identity!(usize, u8, u16, u32, u64, u128, isize, i8, i16, i32, i64, i128, f32, f64);
 
-pub trait Invertible {
-    fn inverse_gauss_jordan(&self) -> Result<Self>
-    where
-        Self: Sized;
-
-    fn inverse_montante(&self) -> Result<Self>
-    where
-        Self: Sized;
-
-    fn inverse_adjoint(&self) -> Result<Self>
-    where
-        Self: Sized;
+macro_rules! impl_arithmetically_opreable {
+    ($($t:ty),*) => {
+        $(impl ArithmeticallyOperable for $t {})*
+    }
 }
 
-pub trait Parseable {
-    fn parse(string: &str, tolerance: f32) -> Result<Self>
-    where
-        Self: Sized;
-}
-
-pub trait Serializable {
-    /// Serialize the matrix, return it in the form `{{a, b, c}, {d, e, f}, {g, h, i}}`
-    fn serialize(&self) -> String;
-}
-
-pub trait Matrix: ArithmeticallyOperable<Self> + Invertible + Parseable + Serializable {
-    type T: ArithmeticallyOperable<Self::T>;
-    /// Will return the number of columns of the matrix
-    fn columns(&self) -> usize;
-
-    /// Will return the number of rows of the matrix
-    fn rows(&self) -> usize;
-
-    /// Will return `true` if the matrix is squared, i.e., if `rows == columns`
-    fn is_square(&self) -> bool;
-
-    /// Will return `true` if the matrix is symmetric, i.e., if `A == A^T`
-    fn is_symmetric(&self) -> bool;
-
-    /// Get a reference of an element of the matrix, or error if you provide wrong indexes
-    fn get(&self, row: usize, column: usize) -> Result<&Self::T>;
-
-    /// Get a mutable reference of an element of the matrix, or error if you provide wrong indexes
-    fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut Self::T>;
-
-    /// Set an element of the matrix, or error if you provide wrong indexes
-    fn set(&mut self, row: usize, column: usize, value: Self::T) -> Result<()>;
-
-    /// Swap two rows of the matrix, or error if you provide wrong indexes
-    fn swap_rows(&mut self, row1: usize, row2: usize) -> Result<()>;
-
-    /// Return a new matrix being the transposed of the current one. It does not eliminate the current one
-    fn transpose(&self) -> Self;
-
-    /// Return a new matrix being the reduced gaussian inferior triangular of the current one. It does not eliminate the current one
-    fn gaussian_triangulation(&self) -> Result<Self>;
-
-    /// Returns a tuple containing the matrices `L` and `U` of the LU decomposition, in order. It does not eliminate the current one
-    fn lu_decomposition(&self) -> Result<(Self, Self)>;
-
-    /// Returns a matrix resulting from the Cholesky decomposition. It does not eliminate the current one
-    fn cholesky_decomposition(&self) -> Result<Self>;
-
-    /// Return the determinant or a `None` if the matrix is not squared
-    fn determinant_using_gauss(&self) -> Option<Self::T>;
-
-    fn determinant_using_lu(&self) -> Option<Self::T>;
-}
+impl_arithmetically_opreable!(
+    usize, u8, u16, u32, u64, u128, isize, i8, i16, i32, i64, i128, f32, f64
+);

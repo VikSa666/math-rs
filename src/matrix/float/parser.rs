@@ -1,5 +1,5 @@
 use crate::{
-    matrix::traits::{Matrix, Parseable, Serializable},
+    matrix::{Matrix, Parseable, Serializable},
     result::{MathError, Result},
 };
 

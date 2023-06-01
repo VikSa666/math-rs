@@ -1,4 +1,7 @@
-use crate::matrix::traits::{Identity, Invertible, Matrix};
+use crate::{
+    matrix::{Invertible, Matrix},
+    traits::Identity,
+};
 
 use super::MatrixF32;
 
@@ -69,8 +72,7 @@ impl Invertible for MatrixF32 {
 
 #[cfg(test)]
 mod test {
-    use crate::matrix::traits::{Invertible, Parseable};
-    use crate::matrix::MatrixF32;
+    use crate::matrix::{Invertible, MatrixF32, Parseable};
     use crate::matrix_f32;
 
     const TOL: f32 = 1e-4;

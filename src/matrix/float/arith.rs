@@ -1,16 +1,14 @@
 use std::str::FromStr;
 
 use crate::{
-    matrix::traits::{
-        ArithmeticallyOperable, CheckedAdd, CheckedMul, CheckedSub, Identity, Matrix, Parseable,
-        Zero,
-    },
+    matrix::{Matrix, Parseable},
     result::{MathError, Result},
+    traits::{ArithmeticallyOperable, CheckedAdd, CheckedMul, CheckedSub, Identity, Zero},
 };
 
 use super::f32::MatrixF32;
 
-impl ArithmeticallyOperable<Result<MatrixF32>> for MatrixF32 {}
+impl ArithmeticallyOperable for MatrixF32 {}
 
 impl FromStr for MatrixF32 {
     type Err = MathError;
@@ -138,8 +136,9 @@ impl CheckedMul for MatrixF32 {
 #[cfg(test)]
 mod test {
     use crate::matrix::float::f32::MatrixF32;
-    use crate::matrix::traits::{CheckedAdd, CheckedSub, Parseable, CheckedMul};
+    use crate::matrix::Parseable;
     use crate::matrix_f32;
+    use crate::traits::{CheckedAdd, CheckedMul, CheckedSub};
 
     const TOL: f32 = 1e-12;
 
