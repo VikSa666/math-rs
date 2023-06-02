@@ -81,7 +81,9 @@ impl CheckedMul for Polynomial {
 
 impl CheckedDiv for Polynomial {
     type Output = Result<(Self, Self), MathError>;
-    /// Will return (q, r) being q the quotient and r the remainder
+    /// Will return (q, r) being q the quotient and r the remainder.
+    ///
+    /// Based on Euclidean Division algorithm.
     fn checked_div(&self, other: &Self) -> Result<(Self, Self), MathError> {
         if other.is_zero() {
             return Err(MathError::DivisionByZero);
@@ -92,13 +94,13 @@ impl CheckedDiv for Polynomial {
         );
         let mut remainder = self.clone();
         // At each step n = d*q+r
-        while !remainder.is_zero() && remainder.degree() >= other.degree() {
-            let t = Polynomial::new(
-                vec![remainder.leading_term() / other.leading_term()],
-                self.tolerance.max(other.tolerance),
-            );
+        while remainder.degree() >= other.degree() {
+            let mut coefficients_t = vec![0.0; remainder.degree() - other.degree()];
+            coefficients_t.push(remainder.leading_term() / other.leading_term());
+            let t = Polynomial::new(coefficients_t, self.tolerance.max(other.tolerance));
             quotient = quotient.checked_add(&t)?;
             remainder = remainder.checked_sub(&other.checked_mul(&t)?)?;
+            println!("{:?}", remainder)
         }
         quotient.cut_off();
         Ok((quotient, remainder))
