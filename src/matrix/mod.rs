@@ -5,7 +5,7 @@ pub use float::MatrixF32;
 pub use macros::*;
 
 use crate::result::Result;
-use crate::traits::ArithmeticallyOperable;
+use crate::traits::{ArithmeticallyOperable, Parseable, Serializable};
 
 pub trait Invertible {
     fn inverse_gauss_jordan(&self) -> Result<Self>
@@ -19,17 +19,6 @@ pub trait Invertible {
     fn inverse_adjoint(&self) -> Result<Self>
     where
         Self: Sized;
-}
-
-pub trait Parseable {
-    fn parse(string: &str, tolerance: f32) -> Result<Self>
-    where
-        Self: Sized;
-}
-
-pub trait Serializable {
-    /// Serialize the matrix, return it in the form `{{a, b, c}, {d, e, f}, {g, h, i}}`
-    fn serialize(&self) -> String;
 }
 
 pub trait Matrix: ArithmeticallyOperable + Invertible + Parseable + Serializable {

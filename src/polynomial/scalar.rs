@@ -4,14 +4,18 @@
 //! - Polynomial * Scalar
 //! - Polynomial / Scalar
 
+use crate::fields::Field;
+
 use super::Polynomial;
 
 /// Supertrait that represents something that is operable with a scalar number.
 ///
 /// This means that the four basic operations (addition, substraction, multiplication and division)
 /// can be performed for the type with a scalar number.
-pub trait OperableWithScalars<T>:
+pub trait OperableWithScalars<T, F>:
     AddScalar<T> + SubScalar<T> + MulScalar<T> + DivScalar<T>
+where
+    F: Field,
 {
 }
 
@@ -35,11 +39,13 @@ pub trait DivScalar<T> {
     fn div_scalar(&self, other: T) -> Self::Output;
 }
 
+/// Generate the `impl` block of the [`AddScalar<T>`] trait for [`Polynomial`]
+/// where `T` is the type provided
 macro_rules! impl_add_scalar {
     ($($scalar:ty),*) => {
-        $(impl AddScalar<$scalar> for Polynomial {
-            type Output = Polynomial;
-            fn add_scalar(&self, other: $scalar) -> Polynomial {
+        $(impl<F: Field> AddScalar<$scalar> for Polynomial<F> {
+            type Output = Polynomial<F>;
+            fn add_scalar(&self, other: $scalar) -> Polynomial<F> {
                 let mut result = self.clone();
                 result.coefficients[0] += other as f64;
                 result
@@ -50,10 +56,12 @@ macro_rules! impl_add_scalar {
     };
 }
 
+/// Generate the `impl` block of the [`SubScalar<T>`] trait for [`Polynomial`]
+/// where `T` is the type provided
 macro_rules! impl_sub_scalar {
     ($($scalar:ty), *) => {
-        $(impl SubScalar<$scalar> for Polynomial {
-            type Output = Polynomial;
+        $(impl<F: Field> SubScalar<$scalar> for Polynomial<F> {
+            type Output = Polynomial<F>;
             fn sub_scalar(&self, other: $scalar) -> Self {
                 let mut result = self.clone();
                 result.coefficients[0] -= other as f64;
@@ -63,10 +71,12 @@ macro_rules! impl_sub_scalar {
     };
 }
 
+/// Generate the `impl` block of the [`MulScalar<T>`] trait for [`Polynomial`]
+/// where `T` is the type provided
 macro_rules! impl_mul_scalar {
     ($($scalar:ty),*) => {
-        $(impl MulScalar<$scalar> for Polynomial {
-            type Output = Polynomial;
+        $(impl<F: Field> MulScalar<$scalar> for Polynomial<F> {
+            type Output = Polynomial<F>;
             fn mul_scalar(&self, other: $scalar) -> Self {
                 let mut result = self.clone();
                 result.coefficients.iter_mut().for_each(|x| *x *= other as f64);
@@ -76,10 +86,12 @@ macro_rules! impl_mul_scalar {
     };
 }
 
+/// Generate the `impl` block of the [`DivScalar<T>`] trait for [`Polynomial`]
+/// where `T` is the type provided
 macro_rules! impl_div_scalar {
     ($($scalar:ty),*) => {
-        $(impl DivScalar<$scalar> for Polynomial {
-            type Output = Self;
+        $(impl<F: Field> DivScalar<$scalar> for Polynomial<F> {
+            type Output = Polynomial<F>;
             fn div_scalar(&self, other: $scalar) -> Self {
                 let mut result = self.clone();
                 result.coefficients.iter_mut().for_each(|x| *x /= other as f64);

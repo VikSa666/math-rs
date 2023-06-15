@@ -158,7 +158,11 @@ impl CheckedDiv for f32 {
     type Output = Result<f32>;
 
     fn checked_div(&self, rhs: &Self) -> Self::Output {
-        Ok(self / rhs)
+        if rhs == &0.0 {
+            Err(MathError::MathError("Division by zero".to_string()))
+        } else {
+            Ok(self / rhs)
+        }
     }
 }
 
@@ -249,3 +253,14 @@ macro_rules! impl_arithmetically_opreable {
 impl_arithmetically_opreable!(
     usize, u8, u16, u32, u64, u128, isize, i8, i16, i32, i64, i128, f32, f64
 );
+
+pub trait Parseable {
+    fn parse(string: &str, tolerance: f32) -> Result<Self>
+    where
+        Self: Sized;
+}
+
+pub trait Serializable {
+    /// Serialize the matrix, return it in the form `{{a, b, c}, {d, e, f}, {g, h, i}}`
+    fn serialize(&self) -> String;
+}

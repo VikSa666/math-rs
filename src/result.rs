@@ -1,5 +1,6 @@
 #[derive(Debug)]
 pub enum MathError {
+    MathError(String),
     MatrixError(String),
     PolynomialError(String),
     DivisionByZero,

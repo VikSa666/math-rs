@@ -1,4 +1,5 @@
 use crate::{
+    fields::Field,
     traits::{
         ArithmeticallyOperable, CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Identity, Zero,
     },
@@ -7,7 +8,7 @@ use crate::{
 
 use super::Polynomial;
 
-impl Identity for Polynomial {
+impl<F: Field> Identity for Polynomial<F> {
     fn id(_: usize, tolerance: f32) -> Self {
         Self {
             coefficients: vec![1.0],
@@ -16,7 +17,7 @@ impl Identity for Polynomial {
     }
 }
 
-impl Zero for Polynomial {
+impl<F: Field> Zero for Polynomial<F> {
     fn zero(_: usize, _: usize, tolerance: f32) -> Self {
         Self {
             coefficients: vec![0.0],
@@ -29,7 +30,7 @@ impl Zero for Polynomial {
     }
 }
 
-impl CheckedAdd for Polynomial {
+impl<F: Field> CheckedAdd for Polynomial<F> {
     type Output = Result<Self, MathError>;
     fn checked_add(&self, other: &Self) -> Result<Self, MathError> {
         let mut result = vec![0.0; self.coefficients.len().max(other.coefficients.len())];
@@ -46,7 +47,7 @@ impl CheckedAdd for Polynomial {
     }
 }
 
-impl CheckedSub for Polynomial {
+impl<F: Field> CheckedSub for Polynomial<F> {
     type Output = Result<Self, MathError>;
     fn checked_sub(&self, other: &Self) -> Result<Self, MathError> {
         let mut result = vec![0.0; self.coefficients.len().max(other.coefficients.len())];
@@ -63,7 +64,7 @@ impl CheckedSub for Polynomial {
     }
 }
 
-impl CheckedMul for Polynomial {
+impl<F: Field> CheckedMul for Polynomial<F> {
     type Output = Result<Self, MathError>;
     fn checked_mul(&self, other: &Self) -> Result<Self, MathError> {
         let mut result = vec![0.0; self.coefficients.len() + other.coefficients.len() - 1];
@@ -79,7 +80,7 @@ impl CheckedMul for Polynomial {
     }
 }
 
-impl CheckedDiv for Polynomial {
+impl<F: Field> CheckedDiv for Polynomial<F> {
     type Output = Result<(Self, Self), MathError>;
     /// Will return (q, r) being q the quotient and r the remainder.
     ///
@@ -92,7 +93,7 @@ impl CheckedDiv for Polynomial {
             vec![0.0; self.coefficients.len() - other.coefficients.len() + 1],
             self.tolerance.max(other.tolerance),
         );
-        let mut remainder = self.clone();
+        let mut remainder = *self.clone();
         // At each step n = d*q+r
         while remainder.degree() >= other.degree() {
             let mut coefficients_t = vec![0.0; remainder.degree() - other.degree()];
@@ -100,14 +101,13 @@ impl CheckedDiv for Polynomial {
             let t = Polynomial::new(coefficients_t, self.tolerance.max(other.tolerance));
             quotient = quotient.checked_add(&t)?;
             remainder = remainder.checked_sub(&other.checked_mul(&t)?)?;
-            println!("{:?}", remainder)
         }
         quotient.cut_off();
         Ok((quotient, remainder))
     }
 }
 
-impl ArithmeticallyOperable for Polynomial {}
+impl<F: Field> ArithmeticallyOperable for Polynomial<F> {}
 
 #[cfg(test)]
 mod test {

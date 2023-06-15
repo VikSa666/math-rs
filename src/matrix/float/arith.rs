@@ -1,9 +1,11 @@
 use std::str::FromStr;
 
 use crate::{
-    matrix::{Matrix, Parseable},
+    matrix::Matrix,
     result::{MathError, Result},
-    traits::{ArithmeticallyOperable, CheckedAdd, CheckedMul, CheckedSub, Identity, Zero},
+    traits::{
+        ArithmeticallyOperable, CheckedAdd, CheckedMul, CheckedSub, Identity, Parseable, Zero,
+    },
 };
 
 use super::f32::MatrixF32;
@@ -136,9 +138,8 @@ impl CheckedMul for MatrixF32 {
 #[cfg(test)]
 mod test {
     use crate::matrix::float::f32::MatrixF32;
-    use crate::matrix::Parseable;
     use crate::matrix_f32;
-    use crate::traits::{CheckedAdd, CheckedMul, CheckedSub};
+    use crate::traits::{CheckedAdd, CheckedMul, CheckedSub, Parseable};
 
     const TOL: f32 = 1e-12;
 

@@ -1,7 +1,7 @@
 use crate::{
-    matrix::{Matrix, Parseable},
+    matrix::Matrix,
     result::{MathError, Result},
-    traits::Identity,
+    traits::{Identity, Parseable},
 };
 
 #[derive(Debug, Clone)]
@@ -227,10 +227,8 @@ impl TryFrom<&str> for MatrixF32 {
 #[cfg(test)]
 mod test {
 
-    use crate::{
-        matrix::{Matrix, Parseable},
-        traits::CheckedAdd,
-    };
+    use crate::matrix::Matrix;
+    use crate::traits::{Parseable, CheckedAdd};
 
     use super::{matrix_f32, MatrixF32};
     use pretty_assertions;

@@ -72,8 +72,9 @@ impl Invertible for MatrixF32 {
 
 #[cfg(test)]
 mod test {
-    use crate::matrix::{Invertible, MatrixF32, Parseable};
+    use crate::matrix::{Invertible, MatrixF32};
     use crate::matrix_f32;
+    use crate::traits::Parseable;
 
     const TOL: f32 = 1e-4;
 

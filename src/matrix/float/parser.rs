@@ -1,6 +1,7 @@
 use crate::{
-    matrix::{Matrix, Parseable, Serializable},
+    matrix::Matrix,
     result::{MathError, Result},
+    traits::{Parseable, Serializable},
 };
 
 use super::MatrixF32;

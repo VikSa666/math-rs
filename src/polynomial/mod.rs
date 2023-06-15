@@ -1,10 +1,16 @@
 use std::str::FromStr;
 
-use crate::MathError;
+use crate::{
+    fields::Field,
+    traits::{CheckedDiv, Zero},
+    MathError, Result,
+};
 
 mod arith;
-mod newton;
+mod display;
 mod scalar;
+mod serde;
+mod zeroes;
 
 /// Representation of a polynomial by just saving its coefficients.
 ///
@@ -20,22 +26,24 @@ mod scalar;
 /// 1 + 2x + 3x^2
 /// ```
 #[derive(Debug, Clone)]
-pub struct Polynomial {
-    coefficients: Vec<f64>,
+pub struct Polynomial<F: Field> {
+    coefficients: Vec<F::Element>,
     tolerance: f32,
 }
 
-impl Polynomial {
-    pub fn new(coefficients: Vec<f64>, tolerance: f32) -> Self {
-        Self {
+impl<F: Field> Polynomial<F> {
+    pub fn new(coefficients: Vec<F::Element>, tolerance: f32) -> Self {
+        let mut polynomial = Self {
             coefficients,
             tolerance,
-        }
+        };
+        polynomial.cut_off();
+        polynomial
     }
 
     /// Returns the coefficients of the polynomial.
     #[inline]
-    pub fn coefficients(&self) -> &[f64] {
+    pub fn coefficients(&self) -> &[F::Element] {
         &self.coefficients
     }
 
@@ -47,7 +55,7 @@ impl Polynomial {
 
     /// Returns the leading term
     #[inline]
-    pub fn leading_term(&self) -> f64 {
+    pub fn leading_term(&self) -> F::Element {
         self.coefficients[self.degree()]
     }
 
@@ -55,7 +63,7 @@ impl Polynomial {
     pub fn normalize(&mut self) {
         let leading_term = self.leading_term();
         for coefficient in self.coefficients.iter_mut() {
-            *coefficient /= leading_term;
+            *coefficient = leading_term.checked_div(coefficient);
         }
     }
 
@@ -96,17 +104,33 @@ impl Polynomial {
             ..*self
         }
     }
+
+    /// Performs the least common multiple of two polynomials using euclidean division.
+    ///
+    /// Source: [Wikipedia](https://es.wikipedia.org/wiki/M%C3%A1ximo_com%C3%BAn_divisor_polin%C3%B3mico#MCD_mediante_c%C3%A1lculo_manual)
+    pub fn lcd(&self, other: &Self) -> Result<Self> {
+        // TODO: study how to remove these ugly clones
+        let mut r_first = self.clone();
+        let mut r_second = other.clone();
+        while !r_second.is_zero() {
+            let temp = r_second.clone();
+            (_, r_second) = r_first.checked_div(&r_second)?;
+            r_first = temp;
+            println!("{:?}", r_second)
+        }
+        Ok(r_first)
+    }
 }
 
-impl FromStr for Polynomial {
+impl<F: Field> FromStr for Polynomial<F> {
     type Err = MathError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         todo!()
     }
 }
 
-impl PartialEq for Polynomial {
+impl<F: Field> PartialEq for Polynomial<F> {
     fn eq(&self, other: &Self) -> bool {
         if self.coefficients.len() != other.coefficients.len() {
             return false;
@@ -123,10 +147,35 @@ impl PartialEq for Polynomial {
 #[cfg(test)]
 mod test {
     use super::*;
+    const TOLERANCE: f32 = 1e-10;
     #[test]
     fn test_cut_off() {
         let mut polynomial = Polynomial::new(vec![1.0, 2.0, 3.0, 0.0, 0.0], 0.0001);
         polynomial.cut_off();
-        assert_eq!(polynomial, Polynomial::new(vec![1.0, 2.0, 3.0], 0.0001));
+        pretty_assertions::assert_eq!(polynomial, Polynomial::new(vec![1.0, 2.0, 3.0], 0.0001));
+    }
+
+    #[test]
+    fn test_evaluate() {
+        let polynomial = Polynomial::new(vec![1.0, 2.0, 3.0], 0.0001);
+        pretty_assertions::assert_eq!(polynomial.evaluate(2.0), 17.0);
+    }
+
+    #[test]
+    fn test_lcd() {
+        let first = Polynomial::new(vec![-1.0, 0.0, 1.0], TOLERANCE);
+        let second = Polynomial::new(vec![-1.0, 1.0], TOLERANCE);
+        let computed_lcd = first.lcd(&second).unwrap();
+        let expected_lcd = Polynomial::new(vec![-1.0, 1.0], TOLERANCE);
+        pretty_assertions::assert_eq!(computed_lcd, expected_lcd);
+    }
+
+    #[test]
+    fn test_lcd_2() {
+        let first = Polynomial::new(vec![6.0, 7.0, 1.0], TOLERANCE);
+        let second = Polynomial::new(vec![-6.0, -5.0, 1.0], TOLERANCE);
+        let computed_lcd = first.lcd(&second).unwrap();
+        let expected_lcd = Polynomial::new(vec![1.0, 1.0], TOLERANCE);
+        pretty_assertions::assert_eq!(computed_lcd, expected_lcd);
     }
 }
