@@ -2,23 +2,21 @@ pub mod display;
 pub mod error;
 pub mod ops;
 
-use std::fmt::Display;
-
-use num::Num;
+use crate::structures::Ring;
 
 use self::error::MatrixError;
 
 #[derive(Debug, Clone)]
-pub struct Matrix<F: Num + Clone + Display> {
-    elements: Vec<Vec<F>>,
+pub struct Matrix<R: Ring> {
+    elements: Vec<Vec<R>>,
 }
 
-impl<F: Num + Clone + Display> Matrix<F> {
+impl<R: Ring> Matrix<R> {
     pub fn rows(&self) -> usize {
         self.elements.len()
     }
 
-    pub fn row_iter(&self) -> std::slice::Iter<'_, Vec<F>> {
+    pub fn row_iter(&self) -> std::slice::Iter<'_, Vec<R>> {
         self.elements.iter()
     }
 
@@ -26,11 +24,11 @@ impl<F: Num + Clone + Display> Matrix<F> {
         self.elements.first().map_or(0, |row| row.len())
     }
 
-    pub fn get(&self, row: usize, column: usize) -> Option<&F> {
+    pub fn get(&self, row: usize, column: usize) -> Option<&R> {
         self.elements.get(row).and_then(|row| row.get(column))
     }
 
-    pub fn set(&mut self, row: usize, column: usize, value: F) {
+    pub fn set(&mut self, row: usize, column: usize, value: R) {
         if let Some(row) = self.elements.get_mut(row) {
             if let Some(element) = row.get_mut(column) {
                 *element = value;
@@ -55,10 +53,10 @@ impl<F: Num + Clone + Display> Matrix<F> {
     }
 }
 
-impl<F: Num + Clone + Display> TryFrom<Vec<Vec<F>>> for Matrix<F> {
+impl<R: Ring> TryFrom<Vec<Vec<R>>> for Matrix<R> {
     type Error = MatrixError;
 
-    fn try_from(value: Vec<Vec<F>>) -> Result<Self, Self::Error> {
+    fn try_from(value: Vec<Vec<R>>) -> Result<Self, Self::Error> {
         let Some(first_row) = value.first() else {
             return Ok(Self::default());
         };
@@ -69,7 +67,7 @@ impl<F: Num + Clone + Display> TryFrom<Vec<Vec<F>>> for Matrix<F> {
     }
 }
 
-impl<F: Num + Clone + Display> Default for Matrix<F> {
+impl<R: Ring> Default for Matrix<R> {
     fn default() -> Self {
         Self {
             elements: Default::default(),
@@ -80,54 +78,49 @@ impl<F: Num + Clone + Display> Default for Matrix<F> {
 #[cfg(test)]
 mod test {
 
+    use crate::{
+        identities::One,
+        structures::{integers::Integer, rationals::Rational},
+    };
+
     use super::*;
-    use num::{Complex, FromPrimitive, Rational32};
 
     #[test]
     fn matrix_try_from_should_fail() {
-        let matrix = Matrix::<Rational32>::try_from(vec![
+        let matrix = Matrix::<Rational<i32>>::try_from(vec![
             vec![
-                Rational32::from_f32(1.0).unwrap(),
-                Rational32::from_f32(2.0).unwrap(),
+                Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
+                Rational::<i32>::new(Integer::<i32>::new(2), Integer::one()),
             ],
-            vec![Rational32::from_f32(3.0).unwrap()],
+            vec![Rational::<i32>::new(Integer::<i32>::new(3), Integer::one())],
         ]);
         assert_eq!(matrix.err(), Some(MatrixError::InvalidNumberOfColumns));
     }
 
     #[test]
     fn matrix_try_from_should_not_fail() {
-        let matrix = Matrix::<Rational32>::try_from(vec![
+        let matrix = Matrix::<Rational<i32>>::try_from(vec![
             vec![
-                Rational32::from_f32(1.0).unwrap(),
-                Rational32::from_f32(2.0).unwrap(),
+                Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
+                Rational::<i32>::new(Integer::<i32>::new(2), Integer::one()),
             ],
             vec![
-                Rational32::from_f32(3.0).unwrap(),
-                Rational32::from_f32(3.0).unwrap(),
+                Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
+                Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
             ],
         ]);
         assert_eq!(
             matrix.unwrap().elements,
             vec![
                 vec![
-                    Rational32::from_f32(1.0).unwrap(),
-                    Rational32::from_f32(2.0).unwrap(),
+                    Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
+                    Rational::<i32>::new(Integer::<i32>::new(2), Integer::one()),
                 ],
                 vec![
-                    Rational32::from_f32(3.0).unwrap(),
-                    Rational32::from_f32(3.0).unwrap(),
+                    Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
+                    Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
                 ],
             ]
         );
-    }
-
-    #[test]
-    fn matrix_complex_should_not_fail() {
-        Matrix::<Complex<f32>>::try_from(vec![
-            vec![Complex::<f32>::new(1., 1.), Complex::<f32>::new(1., 1.)],
-            vec![Complex::<f32>::new(1., 1.), Complex::<f32>::new(1., 1.)],
-        ])
-        .unwrap();
     }
 }
