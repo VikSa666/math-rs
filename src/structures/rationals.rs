@@ -43,10 +43,11 @@ where
         }
     }
 
-    pub fn simplify(&mut self) {
+    pub fn simplified(mut self) -> Self {
         let gcd = euclid::gcd(self.numerator, self.denominator);
         self.numerator = Integer::<R>::new(self.numerator.value() / gcd.value());
         self.denominator = Integer::<R>::new(self.denominator.value() / gcd.value());
+        self
     }
 }
 
@@ -66,12 +67,11 @@ where
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let mut result = Self::new(
+        Self::new(
             self.numerator * rhs.denominator + rhs.numerator * self.denominator,
             self.denominator * rhs.denominator,
-        );
-        result.simplify();
-        result
+        )
+        .simplified()
     }
 }
 
@@ -82,10 +82,11 @@ where
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        Self {
-            numerator: self.numerator * rhs.numerator,
-            denominator: self.denominator * rhs.denominator,
-        }
+        Self::new(
+            self.numerator * rhs.numerator,
+            self.denominator * rhs.denominator,
+        )
+        .simplified()
     }
 }
 
@@ -100,6 +101,7 @@ where
             numerator: Integer::zero(),
             denominator: Integer::zero(),
         }
+        .simplified()
     }
 }
 
@@ -114,6 +116,7 @@ where
             numerator: -self.numerator,
             denominator: self.denominator,
         }
+        .simplified()
     }
 }
 
@@ -182,6 +185,7 @@ where
             numerator: self.numerator * rhs.denominator,
             denominator: self.denominator * rhs.numerator,
         }
+        .simplified()
     }
 }
 
