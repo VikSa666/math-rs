@@ -3,7 +3,9 @@ pub mod rationals;
 
 use std::{
     fmt::Display,
+    num::ParseIntError,
     ops::{Add, Div, Mul, Neg, Rem, Sub},
+    str::FromStr,
 };
 
 use crate::identities::{One, Zero};
@@ -56,7 +58,15 @@ use crate::identities::{One, Zero};
 /// 3. [ProofWiki](https://proofwiki.org/wiki/Definition:Group)
 /// 4. [PlanetMath](https://planetmath.org/definitionofagroup)
 pub trait Group:
-    Add<Output = Self> + Sub<Output = Self> + Neg<Output = Self> + Zero + Eq + Sized + Copy + Display
+    Add<Output = Self>
+    + Sub<Output = Self>
+    + Neg<Output = Self>
+    + Zero
+    + Eq
+    + Sized
+    + Copy
+    + Display
+    + FromStr<Err = ParseIntError>
 {
     /// Will return the identity element. It is unnecessary as it will be the same as the defined
     /// [`Zero`] element. But for the sake of maintaining the mathematical notation of the definition, it is written.

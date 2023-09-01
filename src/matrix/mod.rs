@@ -98,7 +98,7 @@ mod test {
     }
 
     #[test]
-    fn matrix_try_from_should_not_fail() {
+    fn rational_matrix_try_from_should_not_fail() {
         let matrix = Matrix::<Rational<i32>>::try_from(vec![
             vec![
                 Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
@@ -119,6 +119,38 @@ mod test {
                 vec![
                     Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
                     Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
+                ],
+            ]
+        );
+    }
+
+    #[test]
+    fn integer_matrix_try_from_should_not_fail() {
+        let matrix = Matrix::<Integer<isize>>::try_from(vec![
+            vec![
+                Integer::<isize>::new(1),
+                Integer::<isize>::new(2),
+                Integer::<isize>::new(3),
+            ],
+            vec![
+                Integer::<isize>::new(4),
+                Integer::<isize>::new(5),
+                Integer::<isize>::new(6),
+            ],
+        ]);
+
+        assert_eq!(
+            matrix.unwrap().elements,
+            vec![
+                vec![
+                    Integer::<isize>::new(1),
+                    Integer::<isize>::new(2),
+                    Integer::<isize>::new(3),
+                ],
+                vec![
+                    Integer::<isize>::new(4),
+                    Integer::<isize>::new(5),
+                    Integer::<isize>::new(6),
                 ],
             ]
         );

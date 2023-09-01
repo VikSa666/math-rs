@@ -1,6 +1,7 @@
 use std::{
     fmt::Display,
     ops::{Add, Div, Mul, Neg, Rem, Sub},
+    str::FromStr,
 };
 
 use super::{Group, Ring};
@@ -159,6 +160,17 @@ where
 
     fn is_one(&self) -> bool {
         self.value.is_one()
+    }
+}
+
+impl<R> FromStr for Integer<R>
+where
+    R: Ring,
+{
+    type Err = std::num::ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::new(R::from_str(s)?))
     }
 }
 

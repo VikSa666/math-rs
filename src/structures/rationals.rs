@@ -1,6 +1,7 @@
 use std::{
     fmt::Display,
     ops::{Add, Div, Mul, Neg, Rem, Sub},
+    str::FromStr,
 };
 
 use super::{integers::Integer, Group, Ring};
@@ -19,7 +20,7 @@ where
     denominator: Integer<R>,
 }
 
-macro_rules! impl_rational {
+macro_rules! impl_rationals_as_f32 {
     ($($t:ty),*) => {
         $(impl Rational<$t> {
             /// Returns the result of the division of [`self.numerator`] and [`self.denominator`]
@@ -30,7 +31,7 @@ macro_rules! impl_rational {
     };
 }
 
-impl_rational!(isize, i8, i16, i32, i64, i128);
+impl_rationals_as_f32!(isize, i8, i16, i32, i64, i128);
 
 impl<R> Rational<R>
 where
@@ -154,6 +155,20 @@ where
 
     fn is_one(&self) -> bool {
         self == &Self::one()
+    }
+}
+
+impl<R> FromStr for Rational<R>
+where
+    R: Ring,
+{
+    type Err = std::num::ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut split = s.split('/');
+        let numerator = split.next().unwrap().parse::<Integer<R>>().unwrap();
+        let denominator = split.next().unwrap().parse::<Integer<R>>().unwrap();
+        Ok(Self::new(numerator, denominator))
     }
 }
 
