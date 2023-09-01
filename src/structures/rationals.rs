@@ -27,11 +27,63 @@ macro_rules! impl_rationals_as_f32 {
             pub fn as_f32(&self) -> f32 {
                 self.numerator.as_f32() / self.denominator.as_f32()
             }
+
+            // pub fn approx_from_f32(number: f32, tolerance: f32, max_iterations: usize) -> Self {
+            //     let mut x = number;
+            //     let mut a0 = x.floor() as $t;
+            //     let mut h0 = 1;
+            //     let mut k0 = 0;
+            //     let mut h1 = a0;
+            //     let mut k1 = 1;
+            //     let mut n = 1;
+
+            //     while f32::abs(x - (h1 as f32 / k1 as f32)) > tolerance && n < max_iterations {
+            //         x = 1.0 / (x - a0 as f32);
+            //         a0 = x.floor() as $t;
+            //         let h2 = a0 * h1 + h0;
+            //         let k2 = a0 * k1 + k0;
+            //         h0 = h1;
+            //         k0 = k1;
+            //         h1 = h2;
+            //         k1 = k2;
+            //         n += 1;
+            //     }
+
+
+            //     Self::new(Integer::new(h1), Integer::new(k1))
+            // }
         })*
     };
 }
 
 impl_rationals_as_f32!(isize, i8, i16, i32, i64, i128);
+
+impl Rational<i128> {
+    pub fn approx_from_f32(number: f32, tolerance: f32) -> Self {
+        let int_part = number as i128;
+        let decimal = number - (int_part as f32);
+
+        let int_part_fraction = Rational::<i128>::new(Integer::new(int_part), Integer::one());
+        let decimal_fraction = Rational::<i128>::new(
+            Integer::<i128>::new((decimal * (1. / tolerance)) as i128),
+            Integer::<i128>::new((1. / tolerance) as i128),
+        );
+
+        int_part_fraction + decimal_fraction
+    }
+}
+
+macro_rules! impl_rational_from_primitives {
+    ($($t:ty),*) => {
+        $(impl From<$t> for Rational<$t> {
+            fn from(value: $t) -> Self {
+                Self::new(Integer::new(value), Integer::one())
+            }
+        })*
+    };
+}
+
+impl_rational_from_primitives!(isize, i8, i16, i32, i64, i128);
 
 impl<R> Rational<R>
 where
@@ -226,7 +278,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_rational() {
+    fn build_rational_should_not_fail() {
         let a = Rational::<isize>::new(Integer::<isize>::new(1), Integer::<isize>::new(2));
         let b = Rational::<isize>::new(Integer::<isize>::new(1), Integer::<isize>::new(3));
         let c = Rational::<isize>::new(Integer::<isize>::new(1), Integer::<isize>::new(6));
@@ -262,5 +314,64 @@ mod tests {
             a * b * c * c * c,
             Rational::<isize>::new(Integer::<isize>::new(1), Integer::<isize>::new(1296))
         );
+    }
+
+    #[test]
+    fn build_rational_from_f32() {
+        struct Test<'a> {
+            name: &'a str,
+            input: f32,
+            epsilon: f32,
+            expected: Rational<i128>,
+        }
+
+        vec![
+            Test {
+                name: "easy integer",
+                input: 1.0,
+                epsilon: 1e-4,
+                expected: Rational::<i128>::new(Integer::<i128>::new(1), Integer::<i128>::new(1)),
+            },
+            Test {
+                name: "easy one decimal",
+                input: 1.5,
+                epsilon: 1e-4,
+                expected: Rational::<i128>::new(Integer::<i128>::new(3), Integer::<i128>::new(2)),
+            },
+            Test {
+                name: "easy two decimals",
+                input: 1.25,
+                epsilon: 1e-4,
+                expected: Rational::<i128>::new(Integer::<i128>::new(5), Integer::<i128>::new(4)),
+            },
+            Test {
+                name: "medium random decimals",
+                input: 1.23456789,
+                epsilon: 1e-4,
+                expected: Rational::<i128>::new(
+                    Integer::<i128>::new(2469),
+                    Integer::<i128>::new(2000),
+                ),
+            },
+            Test {
+                name: "medium random decimals",
+                input: 1.23456789,
+                epsilon: 1e-12,
+                expected: Rational::<i128>::new(
+                    Integer::<i128>::new(5796311),
+                    Integer::<i128>::new(4695012),
+                ),
+            },
+        ]
+        .into_iter()
+        .for_each(|test| {
+            pretty_assertions::assert_eq!(
+                Rational::<i128>::approx_from_f32(test.input, test.epsilon),
+                test.expected,
+                "Test {} with epsilon = {} (computed vs expected)",
+                test.name,
+                test.epsilon
+            )
+        });
     }
 }
