@@ -18,11 +18,33 @@ impl<R: Ring> std::fmt::Display for Matrix<R> {
 #[cfg(test)]
 mod test {
 
-    use crate::matrix::Matrix;
+    use crate::{matrix::Matrix, structures::{rationals::Rational, integers::Integer}};
     #[test]
     fn display_i32() {
         let matrix = Matrix::<i32>::try_from(vec![vec![1, 2], vec![3, 4]]).unwrap();
         println!("{}", matrix);
         pretty_assertions::assert_eq!(format!("{}", matrix), "1 2 \n3 4 \n");
+    }
+
+    #[test]
+    fn display_integer() {
+        let matrix = Matrix::<Integer<i32>>::try_from(vec![
+            vec![Integer::new(1), Integer::new(2)],
+            vec![Integer::new(3), Integer::new(4)],
+        ])
+        .unwrap();
+        println!("{}", matrix);
+        pretty_assertions::assert_eq!(format!("{}", matrix), "1 2 \n3 4 \n");
+    }
+
+    #[test]
+    fn display_rational() {
+        let matrix = Matrix::<Rational<i32>>::try_from(vec![
+            vec![Rational::from(1), Rational::from(2)],
+            vec![Rational::from(3), Rational::from(4)],
+        ])
+        .unwrap();
+        println!("{}", matrix);
+        pretty_assertions::assert_eq!(format!("{}", matrix), "1/1 2/1 \n3/1 4/1 \n");
     }
 }

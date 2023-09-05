@@ -207,11 +207,11 @@ where
     R: Ring,
 {
     fn sum(&self, rhs: &Self) -> Self {
-        self.clone() + rhs.clone()
+        *self + *rhs
     }
 
     fn mul(&self, rhs: &Self) -> Self {
-        self.clone() * rhs.clone()
+        *self * *rhs
     }
 
     fn inverse_addition(&self) -> Self {

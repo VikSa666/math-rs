@@ -28,50 +28,23 @@ macro_rules! impl_rationals_as_f32 {
                 self.numerator.as_f32() / self.denominator.as_f32()
             }
 
-            // pub fn approx_from_f32(number: f32, tolerance: f32, max_iterations: usize) -> Self {
-            //     let mut x = number;
-            //     let mut a0 = x.floor() as $t;
-            //     let mut h0 = 1;
-            //     let mut k0 = 0;
-            //     let mut h1 = a0;
-            //     let mut k1 = 1;
-            //     let mut n = 1;
+            pub fn approx_from_f32(number: f32, tolerance: f32) -> Self {
+                let int_part = number as $t;
+                let decimal = number - (int_part as f32);
 
-            //     while f32::abs(x - (h1 as f32 / k1 as f32)) > tolerance && n < max_iterations {
-            //         x = 1.0 / (x - a0 as f32);
-            //         a0 = x.floor() as $t;
-            //         let h2 = a0 * h1 + h0;
-            //         let k2 = a0 * k1 + k0;
-            //         h0 = h1;
-            //         k0 = k1;
-            //         h1 = h2;
-            //         k1 = k2;
-            //         n += 1;
-            //     }
+                let int_part_fraction = Rational::<$t>::new(Integer::new(int_part), Integer::one());
+                let decimal_fraction = Rational::<$t>::new(
+                    Integer::<$t>::new((decimal * (1. / tolerance)) as $t),
+                    Integer::<$t>::new((1. / tolerance) as $t),
+                );
 
-
-            //     Self::new(Integer::new(h1), Integer::new(k1))
-            // }
+                int_part_fraction + decimal_fraction
+            }
         })*
     };
 }
 
 impl_rationals_as_f32!(isize, i8, i16, i32, i64, i128);
-
-impl Rational<i128> {
-    pub fn approx_from_f32(number: f32, tolerance: f32) -> Self {
-        let int_part = number as i128;
-        let decimal = number - (int_part as f32);
-
-        let int_part_fraction = Rational::<i128>::new(Integer::new(int_part), Integer::one());
-        let decimal_fraction = Rational::<i128>::new(
-            Integer::<i128>::new((decimal * (1. / tolerance)) as i128),
-            Integer::<i128>::new((1. / tolerance) as i128),
-        );
-
-        int_part_fraction + decimal_fraction
-    }
-}
 
 macro_rules! impl_rational_from_primitives {
     ($($t:ty),*) => {
