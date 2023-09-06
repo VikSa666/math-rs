@@ -19,6 +19,18 @@ impl Real {
     pub fn new(value: f32) -> Self {
         Self { value }
     }
+
+    pub fn value(&self) -> f32 {
+        self.value
+    }
+
+    pub fn sqrt(&self) -> Self {
+        Self::new(self.value.sqrt())
+    }
+
+    pub fn abs(&self) -> Self {
+        Self::new(self.value.abs())
+    }
 }
 
 impl Add for Real {
@@ -51,7 +63,7 @@ impl FromStr for Real {
 
 impl std::fmt::Display for Real {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.value)
+        write!(f, "{:+}", self.value)
     }
 }
 

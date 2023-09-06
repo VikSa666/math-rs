@@ -1,3 +1,4 @@
+pub mod complex;
 pub mod errors;
 pub mod integers;
 pub mod rationals;
