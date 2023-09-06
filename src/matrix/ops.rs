@@ -1,10 +1,18 @@
-use crate::structures::Ring;
+use crate::{equality::Equals, structures::Ring};
 
 use super::Matrix;
 
-impl<R: Ring> PartialEq for Matrix<R> {
-    fn eq(&self, other: &Self) -> bool {
-        self.elements == other.elements
+impl<R: Ring> Equals for Matrix<R> {
+    fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
+        if self.rows() != rhs.rows() || self.columns() != rhs.columns() {
+            return false;
+        }
+        self.elements.iter().enumerate().all(|(row, row_elements)| {
+            row_elements
+                .iter()
+                .enumerate()
+                .all(|(column, element)| element.equals(rhs.get(row, column).unwrap(), tolerance))
+        })
     }
 }
 
@@ -35,7 +43,7 @@ impl<R: Ring> std::ops::Add for Matrix<R> {
 #[cfg(test)]
 mod test {
 
-    use crate::{matrix::Matrix, structures::integers::Integer};
+    use crate::{equality::Equals, matrix::Matrix, structures::integers::Integer};
 
     #[test]
     fn add_i32() {
@@ -50,13 +58,13 @@ mod test {
         ])
         .unwrap();
         let result = matrix + matrix2;
-        assert_eq!(
-            result.unwrap(),
-            Matrix::<Integer<i32>>::try_from(vec![
+        assert!(result.unwrap().equals(
+            &Matrix::<Integer<i32>>::try_from(vec![
                 vec![Integer::<i32>::new(2), Integer::<i32>::new(4)],
                 vec![Integer::<i32>::new(6), Integer::<i32>::new(8)]
             ])
-            .unwrap()
-        );
+            .unwrap(),
+            0.
+        ),);
     }
 }

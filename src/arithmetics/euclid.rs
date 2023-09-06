@@ -1,13 +1,13 @@
 use crate::{
     identities::Zero,
-    structures::{integers::Integer, Ring},
+    structures::{integers::Integer, Ring}, equality::Equals,
 };
 
-pub fn gcd<I>(a: Integer<I>, b: Integer<I>) -> Integer<I>
+pub fn gcd<R>(a: Integer<R>, b: Integer<R>) -> Integer<R>
 where
-    I: Ring,
+    R: Ring,
 {
-    if b == Integer::zero() {
+    if b.equals(&Integer::zero(), 0.) {
         return a;
     }
     gcd(b, a % b)

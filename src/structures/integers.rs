@@ -4,9 +4,10 @@ use std::{
     str::FromStr,
 };
 
-use super::{Group, Ring};
+use super::{errors::StructureError, Group, Ring};
 use crate::{
     arithmetics::euclid::quotient,
+    equality::Equals,
     identities::{One, Zero},
 };
 
@@ -145,8 +146,8 @@ where
         Self::new(Zero::zero())
     }
 
-    fn is_zero(&self) -> bool {
-        self.value.is_zero()
+    fn is_zero(&self, _: f32) -> bool {
+        self.value.is_zero(0_f32)
     }
 }
 
@@ -158,8 +159,8 @@ where
         Self::new(One::one())
     }
 
-    fn is_one(&self) -> bool {
-        self.value.is_one()
+    fn is_one(&self, _: f32) -> bool {
+        self.value.is_one(0_f32)
     }
 }
 
@@ -167,10 +168,21 @@ impl<R> FromStr for Integer<R>
 where
     R: Ring,
 {
-    type Err = std::num::ParseIntError;
+    type Err = StructureError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::new(R::from_str(s)?))
+        Ok(Self::new(R::from_str(s).map_err(|_| {
+            StructureError::ParseError(format!("Error parsing integer"))
+        })?))
+    }
+}
+
+impl<R> Equals for Integer<R>
+where
+    R: Ring,
+{
+    fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
+        self.value.equals(&rhs.value, tolerance)
     }
 }
 
@@ -212,10 +224,6 @@ where
 
     fn mul(&self, rhs: &Self) -> Self {
         *self * *rhs
-    }
-
-    fn inverse_addition(&self) -> Self {
-        Self::new(-self.value)
     }
 }
 

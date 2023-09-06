@@ -1,14 +1,18 @@
+pub mod errors;
 pub mod integers;
 pub mod rationals;
+pub mod reals;
 
 use std::{
     fmt::Display,
-    num::ParseIntError,
     ops::{Add, Div, Mul, Neg, Rem, Sub},
     str::FromStr,
 };
 
-use crate::identities::{One, Zero};
+use crate::{
+    equality::Equals,
+    identities::{One, Zero},
+};
 
 /// Defines the necessary behavior of an element of a group.
 ///
@@ -62,11 +66,11 @@ pub trait Group:
     + Sub<Output = Self>
     + Neg<Output = Self>
     + Zero
-    + Eq
+    + Equals
     + Sized
     + Copy
     + Display
-    + FromStr<Err = ParseIntError>
+    + FromStr
 {
     /// Will return the identity element. It is unnecessary as it will be the same as the defined
     /// [`Zero`] element. But for the sake of maintaining the mathematical notation of the definition, it is written.
@@ -171,7 +175,9 @@ pub trait Ring: Group + Mul<Output = Self> + Rem<Output = Self> + One + Div<Outp
     fn mul(&self, rhs: &Self) -> Self;
 
     /// Will return the **additive inverse** of the current element.
-    fn inverse_addition(&self) -> Self;
+    fn inverse_addition(&self) -> Self {
+        Self::inverse(&self)
+    }
 }
 
 macro_rules! impl_ring_for_primitives {

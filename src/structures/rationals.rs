@@ -4,10 +4,11 @@ use std::{
     str::FromStr,
 };
 
-use super::{integers::Integer, Group, Ring};
+use super::{errors::StructureError, integers::Integer, Group, Ring};
 
 use crate::{
     arithmetics::euclid,
+    equality::Equals,
     identities::{One, Zero},
 };
 
@@ -165,8 +166,8 @@ where
         Self::new(Integer::zero(), Integer::one())
     }
 
-    fn is_zero(&self) -> bool {
-        self == &Self::zero()
+    fn is_zero(&self, _: f32) -> bool {
+        self.equals(&Self::zero(), 0.)
     }
 }
 
@@ -178,8 +179,8 @@ where
         Self::new(Integer::one(), Integer::one())
     }
 
-    fn is_one(&self) -> bool {
-        self == &Self::one()
+    fn is_one(&self, _: f32) -> bool {
+        self.equals(&Self::one(), 0.)
     }
 }
 
@@ -187,13 +188,30 @@ impl<R> FromStr for Rational<R>
 where
     R: Ring,
 {
-    type Err = std::num::ParseIntError;
+    type Err = StructureError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut split = s.split('/');
-        let numerator = split.next().unwrap().parse::<Integer<R>>().unwrap();
-        let denominator = split.next().unwrap().parse::<Integer<R>>().unwrap();
+        let numerator = split
+            .next()
+            .and_then(|num| num.parse::<Integer<R>>().ok())
+            .ok_or(StructureError::ParseError("Invalid numerator".to_string()))?;
+        let denominator = split
+            .next()
+            .and_then(|denom| denom.parse::<Integer<R>>().ok())
+            .ok_or(StructureError::ParseError(
+                "Invalid denominator".to_string(),
+            ))?;
         Ok(Self::new(numerator, denominator))
+    }
+}
+
+impl<R> Equals for Rational<R>
+where
+    R: Ring,
+{
+    fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
+        (self.numerator * rhs.denominator).equals(&(self.denominator * rhs.numerator), tolerance)
     }
 }
 
@@ -239,10 +257,6 @@ where
 
     fn mul(&self, rhs: &Self) -> Self {
         self.clone() * rhs.clone()
-    }
-
-    fn inverse_addition(&self) -> Self {
-        self.inverse()
     }
 }
 
