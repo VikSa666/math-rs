@@ -4,6 +4,22 @@ A mathematical library
 
 For now, only matrices calculator is implemented.
 
+## How to contribute
+
+### Setting up the development environment
+
+You will need Rust and `cargo` in order to develop this crate. Install _rustup_ in order to install them. Execute
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+You may need to configure your current shell. A message will appear if so, and you will be told to execute
+
+```bash
+source "$HOME/.cargo/env"
+```
+
 ## What you can do
 
 1. Calculate the sum, the substraction and the multiplication of matrices.
