@@ -176,4 +176,26 @@ mod test {
             .iter()
             .for_each(|tolerance| assert!(!x.equals(&y, *tolerance)))
     }
+
+    #[test]
+    fn operations() {
+        let x = Real::new(1.23456789);
+        let y = Real::new(1.23411111);
+        let sum = x + y;
+        let sub = x - y;
+        let mul = x * y;
+        let div = x / y;
+        [1e-4, 1e-8, 1e-12]
+            .into_iter()
+            .for_each(|tolerance| assert!(sum.equals(&Real::new(2.468679), tolerance)));
+        [1e-4, 1e-8, 1e-12]
+            .into_iter()
+            .for_each(|tolerance| assert!(sub.equals(&Real::new(0.00045681), tolerance)));
+        [1e-4, 1e-8, 1e-12]
+            .into_iter()
+            .for_each(|tolerance| assert!(mul.equals(&Real::new(1.5235939), tolerance)));
+        [1e-4, 1e-8, 1e-12]
+            .into_iter()
+            .for_each(|tolerance| assert!(div.equals(&Real::new(1.0003701), tolerance)));
+    }
 }

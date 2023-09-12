@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-use super::{errors::StructureError, integers::Integer, Group, Ring};
+use super::{errors::StructureError, integers::Integer, Field, Group, Ring};
 
 use crate::{
     arithmetics::euclid,
@@ -257,6 +257,19 @@ where
 
     fn mul(&self, rhs: &Self) -> Self {
         self.clone() * rhs.clone()
+    }
+}
+
+impl<R> Field for Rational<R>
+where
+    R: Ring,
+{
+    fn inverse_multiplication(&self) -> Self {
+        Self {
+            numerator: self.denominator.clone(),
+            denominator: self.numerator.clone(),
+        }
+        .simplified()
     }
 }
 

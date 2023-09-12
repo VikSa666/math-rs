@@ -10,7 +10,7 @@ use crate::{
 
 use super::{errors::StructureError, reals::Real, Field, Group, Ring};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Complex {
     re: Real,
     im: Real,
@@ -200,7 +200,11 @@ impl Field for Complex {
 
 #[cfg(test)]
 mod test {
-    use crate::{equality::Equals, structures::complex::Complex};
+    use crate::{
+        equality::Equals,
+        identities::One,
+        structures::{complex::Complex, Field},
+    };
 
     #[test]
     fn display_works_as_expected() {
@@ -254,5 +258,17 @@ mod test {
         assert!((z_2.modulus().value() - 4.123105625617661).abs() < TOL);
         assert!((z_3.modulus().value() - 4.123105625617661).abs() < TOL);
         assert!((z_4.modulus().value() - 1.).abs() < TOL);
+    }
+
+    #[test]
+    fn inverse_works_as_expected() {
+        let z_1 = Complex::from((1., 4.));
+        let z_2 = Complex::from((1., -4.));
+        let z_3 = Complex::from((-1., 4.));
+        let z_4 = Complex::from((-1., 0.));
+        assert!((z_1.inverse_multiplication() * z_1).is_one(TOL));
+        assert!((z_2.inverse_multiplication() * z_2).is_one(TOL));
+        assert!((z_3.inverse_multiplication() * z_3).is_one(TOL));
+        assert!((z_4.inverse_multiplication() * z_4).is_one(TOL));
     }
 }

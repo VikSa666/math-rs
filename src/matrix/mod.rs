@@ -12,6 +12,18 @@ pub struct Matrix<R: Ring> {
 }
 
 impl<R: Ring> Matrix<R> {
+    pub fn with_capacity(rows: usize, columns: usize) -> Self {
+        let mut elements = Vec::with_capacity(rows);
+        for _ in 0..rows {
+            let mut row = Vec::with_capacity(columns);
+            for _ in 0..columns {
+                row.push(R::zero());
+            }
+            elements.push(row);
+        }
+        Self { elements }
+    }
+
     pub fn rows(&self) -> usize {
         self.elements.len()
     }
@@ -80,7 +92,7 @@ mod test {
 
     use crate::{
         identities::One,
-        structures::{integers::Integer, rationals::Rational},
+        structures::{complex::Complex, integers::Integer, rationals::Rational, reals::Real},
     };
 
     use super::*;
@@ -151,6 +163,54 @@ mod test {
                     Integer::<isize>::new(4),
                     Integer::<isize>::new(5),
                     Integer::<isize>::new(6),
+                ],
+            ]
+        );
+    }
+
+    #[test]
+    fn real_matrix_try_from_should_not_fail() {
+        let matrix = Matrix::<Real>::try_from(vec![
+            vec![Real::new(1.), Real::new(2.), Real::new(3.)],
+            vec![Real::new(4.), Real::new(5.), Real::new(6.)],
+        ]);
+
+        assert_eq!(
+            matrix.unwrap().elements,
+            vec![
+                vec![Real::new(1.), Real::new(2.), Real::new(3.)],
+                vec![Real::new(4.), Real::new(5.), Real::new(6.)],
+            ]
+        );
+    }
+
+    #[test]
+    fn complex_matrix_try_from_should_not_fail() {
+        let matrix = Matrix::<Complex>::try_from(vec![
+            vec![
+                Complex::from((1., 1.)),
+                Complex::from((2., 2.)),
+                Complex::from((3., 3.)),
+            ],
+            vec![
+                Complex::from((4., 4.)),
+                Complex::from((5., 5.)),
+                Complex::from((6., 6.)),
+            ],
+        ]);
+
+        assert_eq!(
+            matrix.unwrap().elements,
+            vec![
+                vec![
+                    Complex::from((1., 1.)),
+                    Complex::from((2., 2.)),
+                    Complex::from((3., 3.)),
+                ],
+                vec![
+                    Complex::from((4., 4.)),
+                    Complex::from((5., 5.)),
+                    Complex::from((6., 6.)),
                 ],
             ]
         );

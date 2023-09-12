@@ -18,7 +18,10 @@ impl<R: Ring> std::fmt::Display for Matrix<R> {
 #[cfg(test)]
 mod test {
 
-    use crate::{matrix::Matrix, structures::{rationals::Rational, integers::Integer}};
+    use crate::{
+        matrix::Matrix,
+        structures::{integers::Integer, rationals::Rational},
+    };
     #[test]
     fn display_i32() {
         let matrix = Matrix::<i32>::try_from(vec![vec![1, 2], vec![3, 4]]).unwrap();
