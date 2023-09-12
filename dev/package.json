@@ -10,7 +10,7 @@
   "dependencies": {
     "core-js": "^3.8.3",
     "vue": "^3.2.13",
-    "math-rs": "file:../pkg"
+    "math-rs": "^0.1.5"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.4.0",

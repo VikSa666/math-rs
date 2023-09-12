@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts" setup>
-import init, { RMatrixF32 } from "math-rs";
+import { RMatrixF32 } from "math-rs";
 import { ref } from "vue";
 
 const matA = ref("");
@@ -45,7 +45,6 @@ const matB = ref("");
 const result = ref("Nothing yet...");
 
 const performSum = async () => {
-  await init();
   result.value = RMatrixF32.checked_sum(
     RMatrixF32.from_string(matA.value, 1e-6),
     RMatrixF32.from_string(matB.value, 1e-6)
@@ -53,7 +52,6 @@ const performSum = async () => {
 };
 
 const performSub = async () => {
-  await init();
   result.value = RMatrixF32.checked_sub(
     RMatrixF32.from_string(matA.value, 1e-6),
     RMatrixF32.from_string(matB.value, 1e-6)
@@ -61,7 +59,6 @@ const performSub = async () => {
 };
 
 const performMul = async () => {
-  await init();
   result.value = RMatrixF32.checked_mul(
     RMatrixF32.from_string(matA.value, 1e-6),
     RMatrixF32.from_string(matB.value, 1e-6)
@@ -72,21 +69,18 @@ const mat = ref("");
 const result2 = ref("Nothing yet...");
 
 const preformGaussReduction = async () => {
-  await init();
   result2.value = RMatrixF32.from_string(mat.value, 1e-6)
     .gaussian_triangulation()
     .to_string();
 };
 
 const performGaussJordanDeterminant = async () => {
-  await init();
   result2.value = RMatrixF32.from_string(mat.value, 1e-6)
     .determinant_using_gauss()
     .toString();
 };
 
 const performGaussJordanInverse = async () => {
-  await init();
   result2.value = RMatrixF32.from_string(mat.value, 1e-6)
     .inverse_gauss_jordan()
     .to_string();

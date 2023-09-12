@@ -6,6 +6,9 @@
     },
     "[rust]": {
         "editor.defaultFormatter": "rust-lang.rust-analyzer", // Makes the magic
+        "editor.rulers": [
+            100
+        ]
     },
     "editor.formatOnSave": true,
     "editor.detectIndentation": false,
