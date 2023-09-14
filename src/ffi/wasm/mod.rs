@@ -2,16 +2,7 @@ mod result;
 
 use wasm_bindgen::prelude::*;
 
-use crate::{
-    matrix::{
-        traits::{CheckedAdd, CheckedMul, CheckedSub, Invertible, Matrix, Parseable, Serializable},
-        MatrixF32,
-    },
-    matrix_f32,
-};
-
-// TODO: change this and make it a passable parameter
-const TOLERANCE: f32 = 1e-10;
+use crate::{matrix::Matrix, matrix_reals, structures::reals::Real};
 
 /// Initialization function that automatically gets called when the module is loaded in WASM.
 #[wasm_bindgen(start)]
@@ -21,14 +12,14 @@ pub fn start() -> Result<(), JsValue> {
 }
 
 #[wasm_bindgen]
-pub struct RMatrixF32 {
-    inner: MatrixF32,
+pub struct MatrixReal {
+    inner: Matrix<Real>,
 }
 
 #[wasm_bindgen]
-impl RMatrixF32 {
+impl MatrixReal {
     #[wasm_bindgen(constructor)]
-    pub fn new(content: Vec<f32>, rows: usize, columns: usize) -> Result<RMatrixF32, JsValue> {
+    pub fn new(content: Vec<f32>, rows: usize, columns: usize) -> Result<MatrixReal, JsValue> {
         if content.len() != rows * columns {
             return Err(JsValue::from_str(
                 format!(
@@ -38,21 +29,21 @@ impl RMatrixF32 {
                 .as_str(),
             ));
         }
-        let mut matrix: Vec<Vec<f32>> = Vec::with_capacity(rows);
+        let mut matrix: Vec<Vec<Real>> = Vec::with_capacity(rows);
         for i in 0..rows {
-            let mut row: Vec<f32> = Vec::with_capacity(columns);
+            let mut row: Vec<Real> = Vec::with_capacity(columns);
             for j in 0..columns {
-                row.push(content[i * (columns - 1) + j])
+                row.push(Real::new(content[i * (columns - 1) + j]))
             }
             matrix.push(row)
         }
-        let inner = MatrixF32::new(matrix, TOLERANCE);
+        let inner = Matrix::<Real>::try_from(matrix);
         match inner {
             Ok(inner) => {
                 tracing::info!("Matrix has been built correctly");
-                Ok(RMatrixF32 { inner })
+                Ok(MatrixReal { inner })
             }
-            Err(error) => Err(JsValue::from(error)),
+            Err(error) => Err(JsValue::from_str(error.to_string().as_str())),
         }
     }
 
@@ -67,58 +58,67 @@ impl RMatrixF32 {
     }
 
     pub fn get(&self, row: usize, column: usize) -> Result<f32, JsValue> {
-        let result = self.inner.get(row + 1, column + 1)?;
-        Ok(result.clone())
+        let result = self
+            .inner
+            .get(row + 1, column + 1)
+            .ok_or(JsValue::from_str(
+                format!("Could not get {row},{column} element").as_str(),
+            ))?;
+        Ok(result.value().clone())
     }
 
-    pub fn checked_sum(matrix_a: RMatrixF32, matrix_b: RMatrixF32) -> Result<RMatrixF32, JsValue> {
-        let sum = matrix_a.inner.checked_add(&matrix_b.inner)?;
-        Ok(RMatrixF32 { inner: sum })
+    pub fn checked_sum(matrix_a: MatrixReal, matrix_b: MatrixReal) -> Result<MatrixReal, JsValue> {
+        let sum = matrix_a.inner + matrix_b.inner;
+        Ok(MatrixReal { inner: sum? })
     }
 
-    pub fn checked_sub(matrix_a: RMatrixF32, matrix_b: RMatrixF32) -> Result<RMatrixF32, JsValue> {
-        let sub = matrix_a.inner.checked_sub(&matrix_b.inner)?;
-        Ok(RMatrixF32 { inner: sub })
+    pub fn checked_sub(matrix_a: MatrixReal, matrix_b: MatrixReal) -> Result<MatrixReal, JsValue> {
+        let sub = matrix_a.inner - matrix_b.inner;
+        Ok(MatrixReal { inner: sub? })
     }
 
-    pub fn checked_mul(matrix_a: RMatrixF32, matrix_b: RMatrixF32) -> Result<RMatrixF32, JsValue> {
-        let mul = matrix_a.inner.checked_mul(&matrix_b.inner)?;
-        Ok(RMatrixF32 { inner: mul })
+    pub fn checked_mul(matrix_a: MatrixReal, matrix_b: MatrixReal) -> Result<MatrixReal, JsValue> {
+        let mul = matrix_a.inner * matrix_b.inner;
+        Ok(MatrixReal { inner: mul? })
     }
 
-    pub fn from_string(input: &str, tolerance: f32) -> Result<RMatrixF32, JsValue> {
-        Ok(RMatrixF32 {
-            inner: matrix_f32!(input, tolerance)?,
+    pub fn from_string(input: &str) -> Result<MatrixReal, JsValue> {
+        Ok(MatrixReal {
+            inner: matrix_reals!(input)?,
         })
     }
 
     pub fn to_string(&self) -> String {
-        self.inner.serialize()
+        self.inner.to_string()
     }
 
-    pub fn gaussian_triangulation(&self) -> Result<RMatrixF32, JsValue> {
-        let result = self.inner.gaussian_triangulation()?;
-        Ok(RMatrixF32 { inner: result })
+    pub fn gaussian_triangulation(&self) -> Result<MatrixReal, JsValue> {
+        // let result = self.inner.gaussian_triangulation()?;
+        // Ok(MatrixReal { inner: result })
+        todo!()
     }
 
     pub fn determinant_using_gauss(&self) -> Result<f32, JsValue> {
-        let result = self
-            .inner
-            .determinant_using_gauss()
-            .ok_or("Matrix is not square!")?;
-        Ok(result)
+        // let result = self
+        //     .inner
+        //     .determinant_using_gauss()
+        //     .ok_or("Matrix is not square!")?;
+        // Ok(result)
+        todo!()
     }
 
     pub fn determinant_using_lu(&self) -> Result<f32, JsValue> {
-        let result = self
-            .inner
-            .determinant_using_lu()
-            .ok_or("Matrix is not square!")?;
-        Ok(result)
+        // let result = self
+        //     .inner
+        //     .determinant_using_lu()
+        //     .ok_or("Matrix is not square!")?;
+        // Ok(result)
+        todo!()
     }
 
-    pub fn inverse_gauss_jordan(&self) -> Result<RMatrixF32, JsValue> {
-        let result = self.inner.inverse_gauss_jordan()?;
-        Ok(RMatrixF32 { inner: result })
+    pub fn inverse_gauss_jordan(&self) -> Result<MatrixReal, JsValue> {
+        // let result = self.inner.inverse_gauss_jordan()?;
+        // Ok(MatrixReal { inner: result })
+        todo!()
     }
 }

@@ -69,7 +69,7 @@ pub trait Group:
     + Zero
     + Equals
     + Sized
-    + Copy
+    + Clone
     + Display
     + FromStr
 {

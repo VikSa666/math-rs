@@ -1,6 +1,7 @@
 pub mod display;
 pub mod error;
 pub mod ops;
+pub mod parser;
 
 use crate::structures::Ring;
 

@@ -2,9 +2,8 @@
 
 pub mod arithmetics;
 pub mod equality;
+pub mod ffi;
 pub mod identities;
 pub mod matrix;
-mod result;
+pub mod num_types;
 pub mod structures;
-
-pub use result::*;

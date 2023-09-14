@@ -4,6 +4,30 @@ A mathematical library
 
 For now, only matrices calculator is implemented.
 
+## How to contribute
+
+### Setting up the development environment
+
+You will need Rust and `cargo` in order to develop this crate. Install _rustup_ in order to install them. Execute
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+You may need to configure your current shell. A message will appear if so, and you will be told to execute
+
+```bash
+source "$HOME/.cargo/env"
+```
+
+Later, to develop you will need the development server, which you can find in the `dev` folder. It is a Vue project, and to use it you will need:
+
+1. Install `wasm-pack` with cargo: `cargo install wasm-pack`.
+2. Compile and build the package. Navigate to `ffi/wasm` and execute `wasm-pack build --target web`.
+3. Install `npm` and `nodejs`.
+4. Install the dependencies with `cd dev` and then `npm install`.
+5. Run the development server with `npm run serve`.
+
 ## What you can do
 
 1. Calculate the sum, the substraction and the multiplication of matrices.

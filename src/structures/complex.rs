@@ -6,6 +6,7 @@ use std::{
 use crate::{
     equality::Equals,
     identities::{One, Zero},
+    num_types::{AsF32, FromF32},
 };
 
 use super::{errors::StructureError, reals::Real, Field, Group, Ring};
@@ -115,6 +116,24 @@ impl Sub for Complex {
             re: self.re - rhs.re,
             im: self.im - rhs.im,
         }
+    }
+}
+
+impl FromF32 for Complex {
+    fn from_f32(value: f32, _: f32) -> Self {
+        Self {
+            re: Real::new(value),
+            im: Real::zero(),
+        }
+    }
+}
+
+impl AsF32 for Complex {
+    /// The `as_f32` for complex numbers does not have sense. Hence, it should not be used.
+    ///
+    /// As a temporary workaround, it will return the modulus of the `Self`.
+    fn as_f32(&self) -> f32 {
+        self.modulus().as_f32()
     }
 }
 

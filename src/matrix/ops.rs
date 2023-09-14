@@ -1,3 +1,5 @@
+use std::{ops::Sub, str::FromStr};
+
 use crate::{equality::Equals, identities::Zero, structures::Ring};
 
 use super::{error::MatrixError, Matrix};
@@ -74,6 +76,38 @@ impl<R: Ring> std::ops::Neg for Matrix<R> {
     }
 }
 
+impl<R: Ring> FromStr for Matrix<R> {
+    type Err = MatrixError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Matrix::<R>::parse(s)
+    }
+}
+
+impl<R: Ring> Sub for Matrix<R> {
+    type Output = Result<Self, MatrixError>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        if self.rows() != rhs.rows() || self.columns() != rhs.columns() {
+            return Err(MatrixError::InvalidNumberOfRows);
+        }
+        let mut result = self.clone();
+        self.elements
+            .iter()
+            .enumerate()
+            .for_each(|(row, row_elements)| {
+                row_elements
+                    .iter()
+                    .enumerate()
+                    .for_each(|(column, element)| {
+                        let rhs_element = rhs.get(row, column).unwrap();
+                        result.set(row, column, element.clone() - rhs_element.clone());
+                    });
+            });
+        Ok(result)
+    }
+}
+
 impl<R: Ring> std::ops::Mul for Matrix<R> {
     type Output = Result<Self, super::MatrixError>;
 
@@ -87,11 +121,18 @@ impl<R: Ring> std::ops::Mul for Matrix<R> {
                 let mut sum = R::zero();
                 for i in 0..self.columns() {
                     sum = sum
-                        + *self.get(row, i).ok_or(MatrixError::MatrixError(format!(
-                            "Could not get element {row},{i} from matrix A for multiplication"
-                        )))? * *rhs.get(i, column).ok_or(MatrixError::MatrixError(format!(
+                        + self
+                            .get(row, i)
+                            .ok_or(MatrixError::MatrixError(format!(
+                                "Could not get element {row},{i} from matrix A for multiplication"
+                            )))?
+                            .to_owned()
+                            * rhs
+                                .get(i, column)
+                                .ok_or(MatrixError::MatrixError(format!(
                             "Could not get element {i},{column} from matrix B for multiplication"
-                        )))?;
+                        )))?
+                                .to_owned();
                 }
                 result.set(row, column, sum);
             }

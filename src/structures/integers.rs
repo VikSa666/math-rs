@@ -9,6 +9,7 @@ use crate::{
     arithmetics::euclid::quotient,
     equality::Equals,
     identities::{One, Zero},
+    num_types::{AsF32, FromF32},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -19,27 +20,6 @@ where
 {
     value: R,
 }
-
-macro_rules! impl_integer {
-    ($($t:ty),*) => {
-        $(impl Integer<$t> {
-
-            /// Returns the value of the [`Integer`] as an [`f32`] using Rust's built-in
-            /// `as f32` conversion.
-            pub fn as_f32(&self) -> f32 {
-                self.value as f32
-            }
-
-            /// Returns the value of the [`Integer`] as an [`f64`] using Rust's built-in
-            /// `as f64` conversion.
-            pub fn as_f64(&self) -> f64 {
-                self.value as f64
-            }
-        })*
-    };
-}
-
-impl_integer!(isize, i8, i16, i32, i64, i128);
 
 impl<R> Integer<R>
 where
@@ -52,8 +32,8 @@ where
     }
 
     /// Returns the inside value
-    pub fn value(&self) -> R {
-        self.value
+    pub fn value(&self) -> &R {
+        &self.value
     }
 }
 
@@ -186,6 +166,24 @@ where
     }
 }
 
+impl<R> AsF32 for Integer<R>
+where
+    R: Ring + AsF32,
+{
+    fn as_f32(&self) -> f32 {
+        self.value.as_f32()
+    }
+}
+
+impl<R> FromF32 for Integer<R>
+where
+    R: Ring + FromF32,
+{
+    fn from_f32(value: f32, tolerance: f32) -> Self {
+        Self::new(R::from_f32(value, tolerance))
+    }
+}
+
 impl<R> Group for Integer<R>
 where
     R: Ring,
@@ -195,11 +193,11 @@ where
     }
 
     fn inverse(&self) -> Self {
-        Self::new(-self.value)
+        Self::new(-self.clone().value)
     }
 
     fn op(&self, rhs: &Self) -> Self {
-        *self + *rhs
+        self.clone() + rhs.clone()
     }
 }
 
@@ -210,7 +208,7 @@ where
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        quotient(self, rhs)
+        quotient(&self, &rhs)
     }
 }
 
@@ -219,16 +217,18 @@ where
     R: Ring,
 {
     fn sum(&self, rhs: &Self) -> Self {
-        *self + *rhs
+        self.clone() + rhs.clone()
     }
 
     fn mul(&self, rhs: &Self) -> Self {
-        *self * *rhs
+        self.clone() * rhs.clone()
     }
 }
 
 #[cfg(test)]
 mod test {
+
+    use std::str::FromStr;
 
     use crate::{
         identities::{One, Zero},
@@ -253,5 +253,18 @@ mod test {
         pretty_assertions::assert_eq!(sum, Integer::<i32>::new(2));
         pretty_assertions::assert_eq!(sub, Integer::zero());
         pretty_assertions::assert_eq!(mul, Integer::one());
+    }
+
+    #[test]
+    fn integers_from_str_should_not_fail() {
+        let a = Integer::<isize>::from_str("1234");
+        assert!(a.is_ok());
+    }
+
+    #[test]
+    #[should_panic]
+    fn integers_from_str_should_fail() {
+        let a = Integer::<isize>::from_str("1234.5");
+        assert!(a.is_ok());
     }
 }
