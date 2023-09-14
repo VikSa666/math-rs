@@ -1,9 +1,9 @@
-use crate::{structures::Ring, MathError};
+use crate::structures::Ring;
 
-use super::Matrix;
+use super::{error::MatrixError, Matrix};
 
 impl<R: Ring> Matrix<R> {
-    fn parse(input: &str) -> Result<Self, MathError> {
+    pub fn parse(input: &str) -> Result<Self, MatrixError> {
         let mut matrix = vec![];
         let processed_input = input.trim().split_whitespace().collect::<String>();
         let inner = processed_input
@@ -13,14 +13,14 @@ impl<R: Ring> Matrix<R> {
         for row_str in inner.split("},{") {
             let row = row_str
                 .split(',')
-                .map(|s| -> Result<R, MathError> {
+                .map(|s| -> Result<R, MatrixError> {
                     R::from_str(s).map_err(|_| {
-                        MathError::MatrixError(format!(
+                        MatrixError::MatrixError(format!(
                             "Could not parse matrix due to parsing error",
                         ))
                     })
                 })
-                .collect::<Result<Vec<R>, MathError>>()?;
+                .collect::<Result<Vec<R>, MatrixError>>()?;
             matrix.push(row);
         }
         Ok(Self { elements: matrix })
@@ -47,18 +47,21 @@ impl<R: Ring> Matrix<R> {
 /// # Errors
 /// Will return error if some of the elements are not parsable as [`Real`](crate::structures::reals::Real).
 /// Also if
+#[macro_export]
 macro_rules! matrix_reals {
     ($s:expr) => {
         Matrix::<Real>::parse($s)
     };
 }
 
+#[macro_export]
 macro_rules! matrix_integers {
     ($s:expr) => {
         Matrix::<Integer<i32>>::parse($s)
     };
 }
 
+#[macro_export]
 macro_rules! matrix_rationals {
     ($s:expr) => {
         Matrix::<Rational<i32>>::parse($s)
@@ -135,5 +138,13 @@ mod test {
         println!("{}", matrix_rationals);
         let matrix_reals = matrix_reals!("{{1,2,3},{1,2,3},{1,1,1}}").unwrap();
         println!("{}", matrix_reals);
+    }
+
+    #[test]
+    #[should_panic]
+    fn macro_calls_should_fail() {
+        let matrix_fail =
+            matrix_integers!("{{1.1, 1.2, 1.3}, {1.1, 1.2, 1.3}, {1.1, 1.2, 1.3}}").unwrap();
+        println!("{}", matrix_fail);
     }
 }
