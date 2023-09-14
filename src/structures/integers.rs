@@ -9,6 +9,7 @@ use crate::{
     arithmetics::euclid::quotient,
     equality::Equals,
     identities::{One, Zero},
+    num_types::{AsF32, FromF32},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -19,27 +20,6 @@ where
 {
     value: R,
 }
-
-macro_rules! impl_integer {
-    ($($t:ty),*) => {
-        $(impl Integer<$t> {
-
-            /// Returns the value of the [`Integer`] as an [`f32`] using Rust's built-in
-            /// `as f32` conversion.
-            pub fn as_f32(&self) -> f32 {
-                self.value as f32
-            }
-
-            /// Returns the value of the [`Integer`] as an [`f64`] using Rust's built-in
-            /// `as f64` conversion.
-            pub fn as_f64(&self) -> f64 {
-                self.value as f64
-            }
-        })*
-    };
-}
-
-impl_integer!(isize, i8, i16, i32, i64, i128);
 
 impl<R> Integer<R>
 where
@@ -183,6 +163,24 @@ where
 {
     fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
         self.value.equals(&rhs.value, tolerance)
+    }
+}
+
+impl<R> AsF32 for Integer<R>
+where
+    R: Ring,
+{
+    fn as_f32(&self) -> f32 {
+        self.value.as_f32()
+    }
+}
+
+impl<R> FromF32 for Integer<R>
+where
+    R: Ring,
+{
+    fn from_f32(value: f32, tolerance: f32) -> Self {
+        Self::new(R::from_f32(value, tolerance))
     }
 }
 

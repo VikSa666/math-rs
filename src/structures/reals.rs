@@ -6,6 +6,7 @@ use std::{
 use crate::{
     equality::Equals,
     identities::{One, Zero},
+    num_types::{AsF32, FromF32},
 };
 
 use super::{errors::StructureError, Field, Group, Ring};
@@ -92,6 +93,18 @@ impl Sub for Real {
 impl Equals for Real {
     fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
         (self.value - rhs.value).abs() < tolerance
+    }
+}
+
+impl FromF32 for Real {
+    fn from_f32(value: f32, _: f32) -> Self {
+        Self::new(value)
+    }
+}
+
+impl AsF32 for Real {
+    fn as_f32(&self) -> f32 {
+        self.value
     }
 }
 

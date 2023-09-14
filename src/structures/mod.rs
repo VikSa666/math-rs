@@ -13,6 +13,7 @@ use std::{
 use crate::{
     equality::Equals,
     identities::{One, Zero},
+    num_types::{AsF32, FromF32},
 };
 
 /// Defines the necessary behavior of an element of a group.
@@ -72,6 +73,8 @@ pub trait Group:
     + Copy
     + Display
     + FromStr
+    + FromF32
+    + AsF32
 {
     /// Will return the identity element. It is unnecessary as it will be the same as the defined
     /// [`Zero`] element. But for the sake of maintaining the mathematical notation of the definition, it is written.

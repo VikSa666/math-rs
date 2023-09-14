@@ -10,6 +10,7 @@ use crate::{
     arithmetics::euclid,
     equality::Equals,
     identities::{One, Zero},
+    num_types::{AsF32, FromF32},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -20,32 +21,6 @@ where
     numerator: Integer<R>,
     denominator: Integer<R>,
 }
-
-macro_rules! impl_rationals_as_f32 {
-    ($($t:ty),*) => {
-        $(impl Rational<$t> {
-            /// Returns the result of the division of [`self.numerator`] and [`self.denominator`]
-            pub fn as_f32(&self) -> f32 {
-                self.numerator.as_f32() / self.denominator.as_f32()
-            }
-
-            pub fn approx_from_f32(number: f32, tolerance: f32) -> Self {
-                let int_part = number as $t;
-                let decimal = number - (int_part as f32);
-
-                let int_part_fraction = Rational::<$t>::new(Integer::new(int_part), Integer::one());
-                let decimal_fraction = Rational::<$t>::new(
-                    Integer::<$t>::new((decimal * (1. / tolerance)) as $t),
-                    Integer::<$t>::new((1. / tolerance) as $t),
-                );
-
-                int_part_fraction + decimal_fraction
-            }
-        })*
-    };
-}
-
-impl_rationals_as_f32!(isize, i8, i16, i32, i64, i128);
 
 macro_rules! impl_rational_from_primitives {
     ($($t:ty),*) => {
@@ -191,6 +166,18 @@ where
     type Err = StructureError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if !s.contains('/') {
+            if let Ok(integer) = s.parse::<Integer<R>>() {
+                return Ok(Self::new(integer, Integer::one()));
+            }
+
+            return Ok(Self::from_f32(
+                s.parse::<f32>()
+                    .map_err(|_| StructureError::ParseError("Invalid rational".to_string()))?,
+                1e-12,
+            )
+            .simplified());
+        }
         let mut split = s.split('/');
         let numerator = split
             .next()
@@ -202,7 +189,7 @@ where
             .ok_or(StructureError::ParseError(
                 "Invalid denominator".to_string(),
             ))?;
-        Ok(Self::new(numerator, denominator))
+        Ok(Self::new(numerator, denominator).simplified())
     }
 }
 
@@ -212,6 +199,36 @@ where
 {
     fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
         (self.numerator * rhs.denominator).equals(&(self.denominator * rhs.numerator), tolerance)
+    }
+}
+
+impl<R> AsF32 for Rational<R>
+where
+    R: Ring,
+{
+    fn as_f32(&self) -> f32 {
+        self.numerator.as_f32() / self.denominator.as_f32()
+    }
+}
+
+impl<R> FromF32 for Rational<R>
+where
+    R: Ring,
+{
+    /// The implementation of [`FromF32`] for the [`Rational`] type is a bit custom, as it is not trivial
+    /// to convert an [`f32`] into a [`Rational`] number. With the tolerance given, this function
+    /// will return an approximation of the [`Rational`] number.
+    fn from_f32(value: f32, tolerance: f32) -> Self {
+        let int_part = R::from_f32(value, tolerance);
+        let decimal: f32 = value - (int_part.as_f32());
+
+        let int_part_fraction = Rational::<R>::new(Integer::new(int_part), Integer::one());
+        let decimal_fraction = Rational::<R>::new(
+            Integer::<R>::new(R::from_f32(decimal * (1. / tolerance), tolerance)),
+            Integer::<R>::new(R::from_f32(1. / tolerance, tolerance)),
+        );
+
+        int_part_fraction + decimal_fraction
     }
 }
 
@@ -366,12 +383,52 @@ mod tests {
         .into_iter()
         .for_each(|test| {
             pretty_assertions::assert_eq!(
-                Rational::<i128>::approx_from_f32(test.input, test.epsilon),
+                Rational::<i128>::from_f32(test.input, test.epsilon),
                 test.expected,
                 "Test {} with epsilon = {} (computed vs expected)",
                 test.name,
                 test.epsilon
             )
+        });
+    }
+
+    #[test]
+    fn parse_rational_from_string_should_not_fail() {
+        struct TestCase<'a, R: Ring> {
+            id: &'a str,
+            input: &'a str,
+            expected: Rational<R>,
+        }
+
+        vec![
+            TestCase {
+                id: "Normal rational with / character",
+                input: "1/2",
+                expected: Rational::<i32>::new(Integer::<i32>::new(1), Integer::<i32>::new(2)),
+            },
+            TestCase {
+                id: "Integer as rational",
+                input: "3",
+                expected: Rational::<i32>::new(Integer::<i32>::new(3), Integer::<i32>::new(1)),
+            },
+            TestCase {
+                id: "Float as rational",
+                input: "123.456",
+                expected: Rational::<i32>::new(
+                    Integer::<i32>::new(123456),
+                    Integer::<i32>::new(1000),
+                ),
+            },
+        ]
+        .into_iter()
+        .for_each(|test| {
+            let rational = Rational::<i32>::from_str(test.input);
+            assert!(rational.is_ok(), "Test case {} failed", test.id);
+            assert!(
+                rational.unwrap().equals(&test.expected, 0.0001),
+                "Test case {} failed",
+                test.id
+            );
         });
     }
 }
