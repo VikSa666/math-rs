@@ -1,11 +1,9 @@
 use wasm_bindgen::JsValue;
 
-use crate::result::MathError;
+use crate::matrix::error::MatrixError;
 
-impl From<MathError> for JsValue {
-    fn from(value: MathError) -> Self {
-        match value {
-            MathError::MatrixError(error) => JsValue::from_str(&error),
-        }
+impl From<MatrixError> for JsValue {
+    fn from(value: MatrixError) -> Self {
+        JsValue::from_str(value.to_string().as_str())
     }
 }
