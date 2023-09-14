@@ -32,8 +32,8 @@ where
     }
 
     /// Returns the inside value
-    pub fn value(&self) -> R {
-        self.value
+    pub fn value(&self) -> &R {
+        &self.value
     }
 }
 
@@ -168,7 +168,7 @@ where
 
 impl<R> AsF32 for Integer<R>
 where
-    R: Ring,
+    R: Ring + AsF32,
 {
     fn as_f32(&self) -> f32 {
         self.value.as_f32()
@@ -177,7 +177,7 @@ where
 
 impl<R> FromF32 for Integer<R>
 where
-    R: Ring,
+    R: Ring + FromF32,
 {
     fn from_f32(value: f32, tolerance: f32) -> Self {
         Self::new(R::from_f32(value, tolerance))
@@ -193,11 +193,11 @@ where
     }
 
     fn inverse(&self) -> Self {
-        Self::new(-self.value)
+        Self::new(-self.clone().value)
     }
 
     fn op(&self, rhs: &Self) -> Self {
-        *self + *rhs
+        self.clone() + rhs.clone()
     }
 }
 
@@ -208,7 +208,7 @@ where
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        quotient(self, rhs)
+        quotient(&self, &rhs)
     }
 }
 
@@ -217,16 +217,18 @@ where
     R: Ring,
 {
     fn sum(&self, rhs: &Self) -> Self {
-        *self + *rhs
+        self.clone() + rhs.clone()
     }
 
     fn mul(&self, rhs: &Self) -> Self {
-        *self * *rhs
+        self.clone() * rhs.clone()
     }
 }
 
 #[cfg(test)]
 mod test {
+
+    use std::str::FromStr;
 
     use crate::{
         identities::{One, Zero},
@@ -251,5 +253,18 @@ mod test {
         pretty_assertions::assert_eq!(sum, Integer::<i32>::new(2));
         pretty_assertions::assert_eq!(sub, Integer::zero());
         pretty_assertions::assert_eq!(mul, Integer::one());
+    }
+
+    #[test]
+    fn integers_from_str_should_not_fail() {
+        let a = Integer::<isize>::from_str("1234");
+        assert!(a.is_ok());
+    }
+
+    #[test]
+    #[should_panic]
+    fn integers_from_str_should_fail() {
+        let a = Integer::<isize>::from_str("1234.5");
+        assert!(a.is_ok());
     }
 }
