@@ -47,19 +47,18 @@ where
                 if !lead_value.is_zero(tolerance.as_f32()) {
                     for i in 0..rows {
                         if i != r {
-                            let mut value = matrix
+                            let value = matrix
                                 .get(i, lead)
                                 .ok_or(MatrixError::ElementNotFound(i, lead))?
                                 .to_owned()
                                 / lead_value.to_owned();
                             for j in 0..columns {
+                                let rj = matrix
+                                    .get(r, j)
+                                    .ok_or(MatrixError::ElementNotFound(r, j))?
+                                    .to_owned();
                                 let element = matrix.get_mut(i, j).unwrap();
-                                *element = *element
-                                    - value
-                                        * matrix
-                                            .get(r, j)
-                                            .ok_or(MatrixError::ElementNotFound(r, j))?
-                                            .to_owned();
+                                *element = element.clone() - value.clone() * rj;
                             }
                         }
                     }
