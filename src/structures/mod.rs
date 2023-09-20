@@ -13,6 +13,7 @@ use std::{
 use crate::{
     equality::Equals,
     identities::{One, Zero},
+    traits::Abs,
 };
 
 /// Defines the necessary behavior of an element of a group.
@@ -66,6 +67,7 @@ pub trait Group:
     Add<Output = Self>
     + Sub<Output = Self>
     + Neg<Output = Self>
+    + Abs<Output = Self>
     + Zero
     + Equals
     + Sized

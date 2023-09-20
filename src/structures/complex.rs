@@ -7,6 +7,7 @@ use crate::{
     equality::Equals,
     identities::{One, Zero},
     num_types::{AsF32, FromF32},
+    traits::Abs,
 };
 
 use super::{errors::StructureError, reals::Real, Field, Group, Ring};
@@ -134,6 +135,23 @@ impl AsF32 for Complex {
     /// As a temporary workaround, it will return the modulus of the `Self`.
     fn as_f32(&self) -> f32 {
         self.modulus().as_f32()
+    }
+}
+
+impl From<Real> for Complex {
+    fn from(value: Real) -> Self {
+        Self {
+            re: value,
+            im: Real::zero(),
+        }
+    }
+}
+
+impl Abs for Complex {
+    type Output = Complex;
+
+    fn abs_value(&self) -> Self::Output {
+        Self::from(self.modulus())
     }
 }
 

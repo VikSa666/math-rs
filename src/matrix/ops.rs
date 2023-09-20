@@ -9,9 +9,9 @@ impl<R: Ring> Equals for Matrix<R> {
         if self.rows() != rhs.rows() || self.columns() != rhs.columns() {
             return false;
         }
-        self.elements
+        self.data
             .iter()
-            .zip(rhs.elements.iter())
+            .zip(rhs.data.iter())
             .all(|(row, other_row)| {
                 row.iter()
                     .zip(other_row.iter())
@@ -28,7 +28,7 @@ impl<R: Ring> std::ops::Add for Matrix<R> {
             return Err(super::MatrixError::InvalidNumberOfRows);
         }
         let mut result = self.clone();
-        self.elements
+        self.data
             .iter()
             .enumerate()
             .for_each(|(row, row_elements)| {
@@ -50,7 +50,7 @@ impl<R: Ring> Zero for Matrix<R> {
     }
 
     fn is_zero(&self, tolerance: f32) -> bool {
-        self.elements
+        self.data
             .iter()
             .all(|row| row.iter().all(|element| element.is_zero(tolerance)))
     }
@@ -61,7 +61,7 @@ impl<R: Ring> std::ops::Neg for Matrix<R> {
 
     fn neg(self) -> Self::Output {
         let mut result = self.clone();
-        self.elements
+        self.data
             .iter()
             .enumerate()
             .for_each(|(row, row_elements)| {
@@ -92,7 +92,7 @@ impl<R: Ring> Sub for Matrix<R> {
             return Err(MatrixError::InvalidNumberOfRows);
         }
         let mut result = self.clone();
-        self.elements
+        self.data
             .iter()
             .enumerate()
             .for_each(|(row, row_elements)| {

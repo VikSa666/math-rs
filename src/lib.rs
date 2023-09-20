@@ -7,3 +7,4 @@ pub mod identities;
 pub mod matrix;
 pub mod num_types;
 pub mod structures;
+pub mod traits;

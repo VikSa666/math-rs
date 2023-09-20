@@ -6,7 +6,7 @@ use crate::{
 
 pub fn gcd<R>(a: &Integer<R>, b: &Integer<R>) -> Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     if b.equals(&Integer::zero(), 0.) {
         return a.clone();
@@ -16,7 +16,7 @@ where
 
 pub fn euclidean_division<R>(a: &Integer<R>, b: &Integer<R>) -> (Integer<R>, Integer<R>)
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     let q = a.to_owned() / b.to_owned();
     let r = a.to_owned() - q.clone() * b.to_owned();
@@ -25,7 +25,7 @@ where
 
 pub fn quotient<R>(a: &Integer<R>, b: &Integer<R>) -> Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     euclidean_division(a, b).0
 }

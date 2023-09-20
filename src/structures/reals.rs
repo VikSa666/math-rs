@@ -7,6 +7,7 @@ use crate::{
     equality::Equals,
     identities::{One, Zero},
     num_types::{AsF32, FromF32},
+    traits::Abs,
 };
 
 use super::{errors::StructureError, Field, Group, Ring};
@@ -105,6 +106,13 @@ impl FromF32 for Real {
 impl AsF32 for Real {
     fn as_f32(&self) -> f32 {
         self.value
+    }
+}
+
+impl Abs for Real {
+    type Output = Real;
+    fn abs_value(&self) -> Self::Output {
+        Self::new(self.value.abs())
     }
 }
 
