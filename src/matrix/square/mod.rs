@@ -1,29 +1,23 @@
-pub mod dimension;
-
 use crate::structures::Ring;
 
-use self::dimension::Dimension;
-
-pub struct SquareMatrix<N, R>
+pub struct SquareMatrix<R>
 where
     R: Ring,
-    N: Dimension,
 {
-    dimension: N,
+    dimension: usize,
     data: Vec<Vec<R>>,
 }
 
-impl<N, R> SquareMatrix<N, R>
+impl<R> SquareMatrix<R>
 where
     R: Ring,
-    N: Dimension,
 {
-    pub fn new(dimension: N, data: Vec<Vec<R>>) -> Self {
+    pub fn new(dimension: usize, data: Vec<Vec<R>>) -> Self {
         Self { dimension, data }
     }
 
-    pub fn dimension(&self) -> &N {
-        &self.dimension
+    pub fn dimension(&self) -> usize {
+        self.dimension
     }
 
     pub fn data(&self) -> &Vec<Vec<R>> {
@@ -45,7 +39,7 @@ mod tests {
                 vec![Integer::new(3), Integer::new(4)],
             ],
         );
-        assert_eq!(matrix.dimension(), &2);
+        assert_eq!(matrix.dimension(), 2);
         assert_eq!(
             matrix.data(),
             &vec![
@@ -64,7 +58,7 @@ mod tests {
                 vec![Integer::new(3), Integer::new(4)],
             ],
         );
-        assert_eq!(matrix.dimension(), &2);
+        assert_eq!(matrix.dimension(), 2);
     }
 
     #[test]

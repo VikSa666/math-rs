@@ -2,7 +2,7 @@ use std::{ops::Sub, str::FromStr};
 
 use crate::{equality::Equals, identities::Zero, structures::Ring};
 
-use super::{error::MatrixError, Matrix};
+use super::{error::MatrixError, AsMatrix, Matrix};
 
 impl<R: Ring> Equals for Matrix<R> {
     fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
@@ -28,13 +28,12 @@ impl<R: Ring> std::ops::Add for Matrix<R> {
             return Err(super::MatrixError::InvalidNumberOfRows);
         }
         let mut result = self.clone();
-        for (row, row_elements) in self.data().iter().enumerate() {
+        for (row, row_elements) in self.data.iter().enumerate() {
             for (column, element) in row_elements.iter().enumerate() {
                 let rhs_element = rhs.get(row, column)?;
                 result.set(row, column, element.clone() + rhs_element.clone())?;
             }
         }
-
         Ok(result)
     }
 }
@@ -52,16 +51,16 @@ impl<R: Ring> Zero for Matrix<R> {
 }
 
 impl<R: Ring> std::ops::Neg for Matrix<R> {
-    type Output = Self;
+    type Output = Result<Self, MatrixError>;
 
     fn neg(self) -> Self::Output {
         let mut result = self.clone();
-        for (row, row_elements) in self.data().iter().enumerate() {
+        for (row, row_elements) in self.data.iter().enumerate() {
             for (column, element) in row_elements.iter().enumerate() {
-                result.set(row, column, -element.clone()).unwrap();
+                result.set(row, column, -element.clone())?;
             }
         }
-        result
+        Ok(result)
     }
 }
 
@@ -81,13 +80,12 @@ impl<R: Ring> Sub for Matrix<R> {
             return Err(MatrixError::InvalidNumberOfRows);
         }
         let mut result = self.clone();
-        for (row, row_elements) in self.data().iter().enumerate() {
+        for (row, row_elements) in self.data.iter().enumerate() {
             for (column, element) in row_elements.iter().enumerate() {
                 let rhs_element = rhs.get(row, column)?;
                 result.set(row, column, element.clone() - rhs_element.clone())?;
             }
         }
-
         Ok(result)
     }
 }

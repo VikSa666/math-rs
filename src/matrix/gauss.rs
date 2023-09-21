@@ -2,7 +2,7 @@ use crate::num_types::AsF32;
 use crate::structures::Ring;
 
 use super::error::MatrixError;
-use super::Matrix;
+use super::{AsMatrix, Matrix};
 
 impl<R> Matrix<R>
 where
@@ -98,8 +98,8 @@ mod tests {
         matrix.swap_rows(1, 2).unwrap();
         matrix.swap_rows(2, 3).unwrap();
         assert_eq!(
-            matrix.data(),
-            &vec![
+            matrix.data,
+            vec![
                 vec![
                     Integer::new(2),
                     Integer::new(1),

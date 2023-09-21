@@ -14,16 +14,32 @@ pub struct Matrix<R: Ring> {
     data: Vec<Vec<R>>,
 }
 
-impl<R: Ring> Matrix<R> {
-    pub fn data(&self) -> &Vec<Vec<R>> {
+pub trait AsMatrix<R: Ring> {
+    fn data(&self) -> &Vec<Vec<R>>;
+    fn data_mut(&mut self) -> &mut Vec<Vec<R>>;
+    fn with_capacity(rows: usize, columns: usize) -> Self;
+    fn rows(&self) -> usize;
+    fn columns(&self) -> usize;
+    fn row_iter(&self) -> std::slice::Iter<'_, Vec<R>>;
+    fn get(&self, row: usize, column: usize) -> Result<&R, MatrixError>;
+    fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut R, MatrixError>;
+    fn set(&mut self, row: usize, column: usize, value: R) -> Result<(), MatrixError>;
+    fn transpose(&self) -> Self;
+    fn is_square(&self) -> bool {
+        self.rows() == self.columns()
+    }
+}
+
+impl<R: Ring> AsMatrix<R> for Matrix<R> {
+    fn data(&self) -> &Vec<Vec<R>> {
         &self.data
     }
 
-    pub fn data_mut(&mut self) -> &mut Vec<Vec<R>> {
+    fn data_mut(&mut self) -> &mut Vec<Vec<R>> {
         &mut self.data
     }
 
-    pub fn with_capacity(rows: usize, columns: usize) -> Self {
+    fn with_capacity(rows: usize, columns: usize) -> Self {
         let mut elements = Vec::with_capacity(rows);
         for _ in 0..rows {
             let mut row = Vec::with_capacity(columns);
@@ -35,39 +51,39 @@ impl<R: Ring> Matrix<R> {
         Self { data: elements }
     }
 
-    pub fn rows(&self) -> usize {
+    fn rows(&self) -> usize {
         self.data.len()
     }
 
-    pub fn row_iter(&self) -> std::slice::Iter<'_, Vec<R>> {
+    fn row_iter(&self) -> std::slice::Iter<'_, Vec<R>> {
         self.data.iter()
     }
 
-    pub fn columns(&self) -> usize {
+    fn columns(&self) -> usize {
         self.data.first().map_or(0, |row| row.len())
     }
 
-    pub fn get(&self, row: usize, column: usize) -> Result<&R, MatrixError> {
+    fn get(&self, row: usize, column: usize) -> Result<&R, MatrixError> {
         self.data
             .get(row)
             .and_then(|row| row.get(column))
             .ok_or(MatrixError::ElementNotFound(row, column))
     }
 
-    pub fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut R, MatrixError> {
+    fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut R, MatrixError> {
         self.data
             .get_mut(row)
             .and_then(|row| row.get_mut(column))
             .ok_or(MatrixError::ElementNotFound(row, column))
     }
 
-    pub fn set(&mut self, row: usize, column: usize, value: R) -> Result<(), MatrixError> {
+    fn set(&mut self, row: usize, column: usize, value: R) -> Result<(), MatrixError> {
         let element = self.get_mut(row, column)?;
         *element = value;
         Ok(())
     }
 
-    pub fn transpose(&self) -> Self {
+    fn transpose(&self) -> Self {
         let mut elements = Vec::with_capacity(self.columns());
         for column in 0..self.columns() {
             let mut new_row = Vec::with_capacity(self.rows());
@@ -79,7 +95,7 @@ impl<R: Ring> Matrix<R> {
         Self { data: elements }
     }
 
-    pub fn is_square(&self) -> bool {
+    fn is_square(&self) -> bool {
         self.rows() == self.columns()
     }
 }
