@@ -58,12 +58,7 @@ impl MatrixReal {
     }
 
     pub fn get(&self, row: usize, column: usize) -> Result<f32, JsValue> {
-        let result = self
-            .inner
-            .get(row + 1, column + 1)
-            .ok_or(JsValue::from_str(
-                format!("Could not get {row},{column} element").as_str(),
-            ))?;
+        let result = self.inner.get(row + 1, column + 1)?;
         Ok(result.value().clone())
     }
 

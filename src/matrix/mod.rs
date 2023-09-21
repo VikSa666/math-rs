@@ -9,7 +9,7 @@ use crate::structures::Ring;
 
 use self::error::MatrixError;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Matrix<R: Ring> {
     data: Vec<Vec<R>>,
 }
@@ -47,20 +47,24 @@ impl<R: Ring> Matrix<R> {
         self.data.first().map_or(0, |row| row.len())
     }
 
-    pub fn get(&self, row: usize, column: usize) -> Option<&R> {
-        self.data.get(row).and_then(|row| row.get(column))
+    pub fn get(&self, row: usize, column: usize) -> Result<&R, MatrixError> {
+        self.data
+            .get(row)
+            .and_then(|row| row.get(column))
+            .ok_or(MatrixError::ElementNotFound(row, column))
     }
 
-    pub fn get_mut(&mut self, row: usize, column: usize) -> Option<&mut R> {
-        self.data.get_mut(row).and_then(|row| row.get_mut(column))
+    pub fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut R, MatrixError> {
+        self.data
+            .get_mut(row)
+            .and_then(|row| row.get_mut(column))
+            .ok_or(MatrixError::ElementNotFound(row, column))
     }
 
-    pub fn set(&mut self, row: usize, column: usize, value: R) {
-        if let Some(row) = self.data.get_mut(row) {
-            if let Some(element) = row.get_mut(column) {
-                *element = value;
-            }
-        }
+    pub fn set(&mut self, row: usize, column: usize, value: R) -> Result<(), MatrixError> {
+        let element = self.get_mut(row, column)?;
+        *element = value;
+        Ok(())
     }
 
     pub fn transpose(&self) -> Self {

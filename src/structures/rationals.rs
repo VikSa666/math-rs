@@ -14,7 +14,7 @@ use crate::{
     traits::Abs,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 pub struct Rational<R>
 where
     R: Ring + PartialOrd,

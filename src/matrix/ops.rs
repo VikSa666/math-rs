@@ -28,18 +28,13 @@ impl<R: Ring> std::ops::Add for Matrix<R> {
             return Err(super::MatrixError::InvalidNumberOfRows);
         }
         let mut result = self.clone();
-        self.data
-            .iter()
-            .enumerate()
-            .for_each(|(row, row_elements)| {
-                row_elements
-                    .iter()
-                    .enumerate()
-                    .for_each(|(column, element)| {
-                        let rhs_element = rhs.get(row, column).unwrap();
-                        result.set(row, column, element.clone() + rhs_element.clone());
-                    });
-            });
+        for (row, row_elements) in self.data().iter().enumerate() {
+            for (column, element) in row_elements.iter().enumerate() {
+                let rhs_element = rhs.get(row, column)?;
+                result.set(row, column, element.clone() + rhs_element.clone())?;
+            }
+        }
+
         Ok(result)
     }
 }
@@ -61,17 +56,11 @@ impl<R: Ring> std::ops::Neg for Matrix<R> {
 
     fn neg(self) -> Self::Output {
         let mut result = self.clone();
-        self.data
-            .iter()
-            .enumerate()
-            .for_each(|(row, row_elements)| {
-                row_elements
-                    .iter()
-                    .enumerate()
-                    .for_each(|(column, element)| {
-                        result.set(row, column, -element.clone());
-                    });
-            });
+        for (row, row_elements) in self.data().iter().enumerate() {
+            for (column, element) in row_elements.iter().enumerate() {
+                result.set(row, column, -element.clone()).unwrap();
+            }
+        }
         result
     }
 }
@@ -92,18 +81,13 @@ impl<R: Ring> Sub for Matrix<R> {
             return Err(MatrixError::InvalidNumberOfRows);
         }
         let mut result = self.clone();
-        self.data
-            .iter()
-            .enumerate()
-            .for_each(|(row, row_elements)| {
-                row_elements
-                    .iter()
-                    .enumerate()
-                    .for_each(|(column, element)| {
-                        let rhs_element = rhs.get(row, column).unwrap();
-                        result.set(row, column, element.clone() - rhs_element.clone());
-                    });
-            });
+        for (row, row_elements) in self.data().iter().enumerate() {
+            for (column, element) in row_elements.iter().enumerate() {
+                let rhs_element = rhs.get(row, column)?;
+                result.set(row, column, element.clone() - rhs_element.clone())?;
+            }
+        }
+
         Ok(result)
     }
 }
@@ -120,21 +104,9 @@ impl<R: Ring> std::ops::Mul for Matrix<R> {
             for column in 0..rhs.columns() {
                 let mut sum = R::zero();
                 for i in 0..self.columns() {
-                    sum = sum
-                        + self
-                            .get(row, i)
-                            .ok_or(MatrixError::MatrixError(format!(
-                                "Could not get element {row},{i} from matrix A for multiplication"
-                            )))?
-                            .to_owned()
-                            * rhs
-                                .get(i, column)
-                                .ok_or(MatrixError::MatrixError(format!(
-                            "Could not get element {i},{column} from matrix B for multiplication"
-                        )))?
-                                .to_owned();
+                    sum = sum + self.get(row, i)?.to_owned() * rhs.get(i, column)?.to_owned();
                 }
-                result.set(row, column, sum);
+                result.set(row, column, sum)?;
             }
         }
         Ok(result)

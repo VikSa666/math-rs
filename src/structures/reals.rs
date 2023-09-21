@@ -12,7 +12,7 @@ use crate::{
 
 use super::{errors::StructureError, Field, Group, Ring};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
 pub struct Real {
     value: f32,
 }
@@ -66,12 +66,6 @@ impl FromStr for Real {
 impl std::fmt::Display for Real {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:+}", self.value)
-    }
-}
-
-impl PartialEq for Real {
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
     }
 }
 
