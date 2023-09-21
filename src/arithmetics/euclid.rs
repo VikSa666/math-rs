@@ -18,9 +18,9 @@ pub fn euclidean_division<R>(a: &Integer<R>, b: &Integer<R>) -> (Integer<R>, Int
 where
     R: Ring + PartialOrd,
 {
-    let q = a.to_owned() / b.to_owned();
-    let r = a.to_owned() - q.clone() * b.to_owned();
-    (q, r)
+    let q = a.value().to_owned() / b.value().to_owned();
+    let r = a.value().to_owned() - q.clone() * b.value().to_owned();
+    (Integer::<R>::new(q), Integer::<R>::new(r))
 }
 
 pub fn quotient<R>(a: &Integer<R>, b: &Integer<R>) -> Integer<R>
@@ -38,7 +38,10 @@ mod test {
     fn test_euclid() {
         let a = Integer::<isize>::new(1);
         let b = Integer::<isize>::new(1);
-        assert_eq!(super::gcd(&a, &b), Integer::<isize>::new(1));
+        assert_eq!(
+            super::euclidean_division(&a, &b),
+            (Integer::<isize>::new(1), Integer::<isize>::new(0))
+        );
     }
 
     #[test]
