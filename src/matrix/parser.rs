@@ -23,7 +23,7 @@ impl<R: Ring> Matrix<R> {
                 .collect::<Result<Vec<R>, MatrixError>>()?;
             matrix.push(row);
         }
-        Ok(Self { elements: matrix })
+        Ok(Self { data: matrix })
     }
 }
 
@@ -88,7 +88,7 @@ mod test {
                 id: "Square easy matrix",
                 input: "{{1,2,3},{1,2,3},{1,1,1}}",
                 expected: Matrix {
-                    elements: vec![
+                    data: vec![
                         vec![Integer::new(1), Integer::new(2), Integer::new(3)],
                         vec![Integer::new(1), Integer::new(2), Integer::new(3)],
                         vec![Integer::new(1), Integer::new(1), Integer::new(1)],
@@ -99,7 +99,7 @@ mod test {
                 id: "Matrix one column",
                 input: "{{1},{1},{1}}",
                 expected: Matrix {
-                    elements: vec![
+                    data: vec![
                         vec![Integer::new(1)],
                         vec![Integer::new(1)],
                         vec![Integer::new(1)],
@@ -110,7 +110,7 @@ mod test {
                 id: "Matrix one row",
                 input: "{{1,2,3}}",
                 expected: Matrix {
-                    elements: vec![vec![Integer::new(1), Integer::new(2), Integer::new(3)]],
+                    data: vec![vec![Integer::new(1), Integer::new(2), Integer::new(3)]],
                 },
             },
         ]
