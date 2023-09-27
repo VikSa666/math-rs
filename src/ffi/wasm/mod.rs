@@ -3,10 +3,11 @@ mod result;
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    matrix::{AsMatrix, Matrix},
+    matrix::{generic::Matrix, AsMatrix},
     matrix_reals,
     structures::reals::Real,
 };
+use std::str::FromStr;
 
 /// Initialization function that automatically gets called when the module is loaded in WASM.
 #[wasm_bindgen(start)]

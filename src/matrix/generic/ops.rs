@@ -1,10 +1,18 @@
-use std::{ops::Sub, str::FromStr};
+use std::{
+    ops::{Add, Neg, Sub},
+    str::FromStr,
+};
 
-use crate::{equality::Equals, identities::Zero, structures::Ring};
+use crate::{
+    equality::Equals,
+    identities::Zero,
+    matrix::{AsMatrix, MatrixError},
+    structures::Ring,
+};
 
-use super::{error::MatrixError, AsMatrix, Matrix};
+use super::Matrix;
 
-impl<R: Ring> Equals for Matrix<R> {
+impl<R: Ring + PartialOrd> Equals for Matrix<R> {
     fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
         if self.rows() != rhs.rows() || self.columns() != rhs.columns() {
             return false;
@@ -20,7 +28,7 @@ impl<R: Ring> Equals for Matrix<R> {
     }
 }
 
-impl<R: Ring> std::ops::Add for Matrix<R> {
+impl<R: Ring + PartialOrd> Add for Matrix<R> {
     type Output = Result<Self, super::MatrixError>;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -38,7 +46,7 @@ impl<R: Ring> std::ops::Add for Matrix<R> {
     }
 }
 
-impl<R: Ring> Zero for Matrix<R> {
+impl<R: Ring + PartialOrd> Zero for Matrix<R> {
     fn zero() -> Self {
         Matrix::<R>::with_capacity(0, 0)
     }
@@ -50,7 +58,7 @@ impl<R: Ring> Zero for Matrix<R> {
     }
 }
 
-impl<R: Ring> std::ops::Neg for Matrix<R> {
+impl<R: Ring + PartialOrd> Neg for Matrix<R> {
     type Output = Result<Self, MatrixError>;
 
     fn neg(self) -> Self::Output {
@@ -64,15 +72,7 @@ impl<R: Ring> std::ops::Neg for Matrix<R> {
     }
 }
 
-impl<R: Ring> FromStr for Matrix<R> {
-    type Err = MatrixError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Matrix::<R>::parse(s)
-    }
-}
-
-impl<R: Ring> Sub for Matrix<R> {
+impl<R: Ring + PartialOrd> Sub for Matrix<R> {
     type Output = Result<Self, MatrixError>;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -90,7 +90,7 @@ impl<R: Ring> Sub for Matrix<R> {
     }
 }
 
-impl<R: Ring> std::ops::Mul for Matrix<R> {
+impl<R: Ring + PartialOrd> std::ops::Mul for Matrix<R> {
     type Output = Result<Self, super::MatrixError>;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -116,7 +116,7 @@ mod test {
 
     use crate::{
         equality::Equals,
-        matrix::Matrix,
+        matrix::generic::Matrix,
         structures::{complex::Complex, integers::Integer, rationals::Rational, reals::Real},
     };
 

@@ -235,6 +235,14 @@ impl Field for Complex {
     }
 }
 
+impl PartialOrd for Complex {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let self_module = self.modulus();
+        let other_module = other.modulus();
+        self_module.partial_cmp(&other_module)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::{

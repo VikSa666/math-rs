@@ -1,20 +1,18 @@
 pub mod display;
-pub mod error;
-pub mod gauss;
-pub mod ops;
-pub mod parser;
-pub mod square;
+mod error;
+use std::{fmt::Display, str::FromStr};
+
+pub use error::MatrixError;
 
 use crate::structures::Ring;
 
-use self::error::MatrixError;
+pub mod generic;
+pub mod square;
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Matrix<R: Ring> {
-    data: Vec<Vec<R>>,
-}
-
-pub trait AsMatrix<R: Ring> {
+pub trait AsMatrix<R>: TryFrom<Vec<Vec<R>>> + Default + FromStr + Display + Clone
+where
+    R: Ring + PartialOrd,
+{
     fn data(&self) -> &Vec<Vec<R>>;
     fn data_mut(&mut self) -> &mut Vec<Vec<R>>;
     fn with_capacity(rows: usize, columns: usize) -> Self;
@@ -28,226 +26,201 @@ pub trait AsMatrix<R: Ring> {
     fn is_square(&self) -> bool {
         self.rows() == self.columns()
     }
-}
-
-impl<R: Ring> AsMatrix<R> for Matrix<R> {
-    fn data(&self) -> &Vec<Vec<R>> {
-        &self.data
-    }
-
-    fn data_mut(&mut self) -> &mut Vec<Vec<R>> {
-        &mut self.data
-    }
-
-    fn with_capacity(rows: usize, columns: usize) -> Self {
-        let mut elements = Vec::with_capacity(rows);
-        for _ in 0..rows {
-            let mut row = Vec::with_capacity(columns);
-            for _ in 0..columns {
-                row.push(R::zero());
-            }
-            elements.push(row);
+    fn swap_rows(&mut self, row1: usize, row2: usize) -> Result<(), MatrixError> {
+        if row1 == row2 {
+            return Ok(());
         }
-        Self { data: elements }
-    }
+        if row1 >= self.rows() || row2 >= self.rows() {
+            return Err(MatrixError::InvalidNumberOfRows);
+        }
+        let data = self.data_mut();
 
-    fn rows(&self) -> usize {
-        self.data.len()
-    }
-
-    fn row_iter(&self) -> std::slice::Iter<'_, Vec<R>> {
-        self.data.iter()
-    }
-
-    fn columns(&self) -> usize {
-        self.data.first().map_or(0, |row| row.len())
-    }
-
-    fn get(&self, row: usize, column: usize) -> Result<&R, MatrixError> {
-        self.data
-            .get(row)
-            .and_then(|row| row.get(column))
-            .ok_or(MatrixError::ElementNotFound(row, column))
-    }
-
-    fn get_mut(&mut self, row: usize, column: usize) -> Result<&mut R, MatrixError> {
-        self.data
-            .get_mut(row)
-            .and_then(|row| row.get_mut(column))
-            .ok_or(MatrixError::ElementNotFound(row, column))
-    }
-
-    fn set(&mut self, row: usize, column: usize, value: R) -> Result<(), MatrixError> {
-        let element = self.get_mut(row, column)?;
-        *element = value;
+        data.swap(row1, row2);
         Ok(())
     }
 
-    fn transpose(&self) -> Self {
-        let mut elements = Vec::with_capacity(self.columns());
-        for column in 0..self.columns() {
-            let mut new_row = Vec::with_capacity(self.rows());
-            for row in self.data.iter() {
-                new_row.push(row[column].clone());
+    fn gaussian_elimination(&self, tolerance: f32) -> Result<Self, MatrixError> {
+        let mut matrix = self.clone();
+        let mut i = 0;
+        let mut j = 0;
+        while i < matrix.rows() && j < matrix.columns() {
+            let mut max_row = i;
+            for k in i + 1..matrix.rows() {
+                if matrix.get(k, j)?.abs_value() > matrix.get(max_row, j)?.abs_value() {
+                    max_row = k;
+                }
             }
-            elements.push(new_row);
+            if matrix.get(max_row, j)?.is_zero(tolerance) {
+                j += 1;
+            } else {
+                matrix.swap_rows(i, max_row)?;
+                for k in i + 1..matrix.rows() {
+                    let factor = matrix.get(k, j)?.clone() / matrix.get(i, j)?.clone();
+                    matrix.set(k, j, R::zero())?;
+                    for l in j + 1..matrix.columns() {
+                        let new_value =
+                            matrix.get(k, l)?.clone() - matrix.get(i, l)?.clone() * factor.clone();
+                        matrix.set(k, l, new_value)?;
+                    }
+                }
+                i += 1;
+                j += 1;
+            }
         }
-        Self { data: elements }
-    }
-
-    fn is_square(&self) -> bool {
-        self.rows() == self.columns()
-    }
-}
-
-impl<R: Ring> TryFrom<Vec<Vec<R>>> for Matrix<R> {
-    type Error = MatrixError;
-
-    fn try_from(value: Vec<Vec<R>>) -> Result<Self, Self::Error> {
-        let Some(first_row) = value.first() else {
-            return Ok(Self::default());
-        };
-        if value.iter().any(|row| row.len() != first_row.len()) {
-            return Err(MatrixError::InvalidNumberOfColumns);
-        }
-        Ok(Self { data: value })
-    }
-}
-
-impl<R: Ring> Default for Matrix<R> {
-    fn default() -> Self {
-        Self {
-            data: Default::default(),
-        }
+        Ok(matrix)
     }
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
+    use std::str::FromStr;
 
     use crate::{
-        identities::One,
-        structures::{complex::Complex, integers::Integer, rationals::Rational, reals::Real},
+        equality::Equals,
+        matrix::{error::MatrixError, generic::Matrix, AsMatrix},
+        structures::{integers::Integer, rationals::Rational, reals::Real, Ring},
     };
 
-    use super::*;
-
     #[test]
-    fn matrix_try_from_should_fail() {
-        let matrix = Matrix::<Rational<i32>>::try_from(vec![
+    fn swap_rows() {
+        let mut matrix = Matrix::<Integer<i32>>::try_from(vec![
             vec![
-                Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
-                Rational::<i32>::new(Integer::<i32>::new(2), Integer::one()),
-            ],
-            vec![Rational::<i32>::new(Integer::<i32>::new(3), Integer::one())],
-        ]);
-        assert_eq!(matrix.err(), Some(MatrixError::InvalidNumberOfColumns));
-    }
-
-    #[test]
-    fn rational_matrix_try_from_should_not_fail() {
-        let matrix = Matrix::<Rational<i32>>::try_from(vec![
-            vec![
-                Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
-                Rational::<i32>::new(Integer::<i32>::new(2), Integer::one()),
+                Integer::new(1),
+                Integer::new(2),
+                Integer::new(3),
+                Integer::new(4),
             ],
             vec![
-                Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
-                Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
+                Integer::new(2),
+                Integer::new(1),
+                Integer::new(4),
+                Integer::new(3),
             ],
-        ]);
+            vec![
+                Integer::new(4),
+                Integer::new(3),
+                Integer::new(2),
+                Integer::new(1),
+            ],
+            vec![
+                Integer::new(3),
+                Integer::new(4),
+                Integer::new(1),
+                Integer::new(2),
+            ],
+        ])
+        .unwrap();
+        matrix.swap_rows(0, 1).unwrap();
+        matrix.swap_rows(1, 2).unwrap();
+        matrix.swap_rows(2, 3).unwrap();
         assert_eq!(
-            matrix.unwrap().data,
+            *matrix.data(),
             vec![
                 vec![
-                    Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
-                    Rational::<i32>::new(Integer::<i32>::new(2), Integer::one()),
+                    Integer::new(2),
+                    Integer::new(1),
+                    Integer::new(4),
+                    Integer::new(3),
                 ],
                 vec![
-                    Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
-                    Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
+                    Integer::new(4),
+                    Integer::new(3),
+                    Integer::new(2),
+                    Integer::new(1),
+                ],
+                vec![
+                    Integer::new(3),
+                    Integer::new(4),
+                    Integer::new(1),
+                    Integer::new(2),
+                ],
+                vec![
+                    Integer::new(1),
+                    Integer::new(2),
+                    Integer::new(3),
+                    Integer::new(4),
                 ],
             ]
         );
     }
 
-    #[test]
-    fn integer_matrix_try_from_should_not_fail() {
-        let matrix = Matrix::<Integer<isize>>::try_from(vec![
-            vec![
-                Integer::<isize>::new(1),
-                Integer::<isize>::new(2),
-                Integer::<isize>::new(3),
-            ],
-            vec![
-                Integer::<isize>::new(4),
-                Integer::<isize>::new(5),
-                Integer::<isize>::new(6),
-            ],
-        ]);
+    struct TestCase<'a> {
+        id: &'a str,
+        matrix: &'a str,
+        expected: &'a str,
+    }
 
-        assert_eq!(
-            matrix.unwrap().data,
-            vec![
-                vec![
-                    Integer::<isize>::new(1),
-                    Integer::<isize>::new(2),
-                    Integer::<isize>::new(3),
-                ],
-                vec![
-                    Integer::<isize>::new(4),
-                    Integer::<isize>::new(5),
-                    Integer::<isize>::new(6),
-                ],
-            ]
+    const TOLERANCE: f32 = 1e-12;
+
+    fn perform_test<'a, R: Ring + PartialOrd>(
+        test: TestCase<'a>,
+        builder: fn(&str) -> Result<Matrix<R>, MatrixError>,
+    ) {
+        let matrix = builder(test.matrix).unwrap();
+        let expected = builder(test.expected).unwrap();
+        let reduced = matrix.gaussian_elimination(TOLERANCE).unwrap();
+        assert!(
+            reduced.equals(&expected, 1e-6),
+            "Test case: {} failed. Expected\n{expected}but got\n{reduced}",
+            test.id,
+            expected = expected,
+            reduced = reduced
         );
     }
 
     #[test]
-    fn real_matrix_try_from_should_not_fail() {
-        let matrix = Matrix::<Real>::try_from(vec![
-            vec![Real::new(1.), Real::new(2.), Real::new(3.)],
-            vec![Real::new(4.), Real::new(5.), Real::new(6.)],
-        ]);
-
-        assert_eq!(
-            matrix.unwrap().data,
-            vec![
-                vec![Real::new(1.), Real::new(2.), Real::new(3.)],
-                vec![Real::new(4.), Real::new(5.), Real::new(6.)],
-            ]
-        );
+    fn gaussian_elimination_with_real_matrix() {
+        vec![
+            TestCase {
+                id: "Simple 2x2",
+                matrix: "{{1,2},{3,4}}",
+                expected: "{{3,4},{0,0.6666667}}",
+            },
+            TestCase {
+                id: "Simple 3x3",
+                matrix: "{{1,2,3},{4,5,6},{7,8,9}}",
+                expected: "{{7,8,9},{0,+0.8571428,+1.7142856},{0,0,0}}",
+            },
+            TestCase {
+                id: "More rows than columns",
+                matrix: "{{1,2,3},{4,5,6},{7,8,9},{10,11,12}}",
+                expected: "{{10,11,12},{0,+0.9,+1.8},{0,0,0},{0,0,0}}",
+            },
+            TestCase {
+                id: "More columns than rows",
+                matrix: "{{1,2},{3,4},{5,6},{7,8}}",
+                expected: "{{7,8},{0,0.8571428},{0,0},{0,0}}",
+            },
+        ]
+        .into_iter()
+        .for_each(|test| perform_test(test, Matrix::<Real>::from_str));
     }
 
     #[test]
-    fn complex_matrix_try_from_should_not_fail() {
-        let matrix = Matrix::<Complex>::try_from(vec![
-            vec![
-                Complex::from((1., 1.)),
-                Complex::from((2., 2.)),
-                Complex::from((3., 3.)),
-            ],
-            vec![
-                Complex::from((4., 4.)),
-                Complex::from((5., 5.)),
-                Complex::from((6., 6.)),
-            ],
-        ]);
-
-        assert_eq!(
-            matrix.unwrap().data,
-            vec![
-                vec![
-                    Complex::from((1., 1.)),
-                    Complex::from((2., 2.)),
-                    Complex::from((3., 3.)),
-                ],
-                vec![
-                    Complex::from((4., 4.)),
-                    Complex::from((5., 5.)),
-                    Complex::from((6., 6.)),
-                ],
-            ]
-        );
+    fn gaussian_elimination_with_rational_matrix() {
+        vec![
+            TestCase {
+                id: "Simple 2x2",
+                matrix: "{{1,2},{3,4}}",
+                expected: "{{3,4},{0,2/3}}",
+            },
+            TestCase {
+                id: "Simple 3x3",
+                matrix: "{{1,2,3},{4,5,6},{7,8,9}}",
+                expected: "{{7,8,9},{0,6/7,12/7},{0,0,0}}",
+            },
+            TestCase {
+                id: "More rows than columns",
+                matrix: "{{1,2,3},{4,5,6},{7,8,9},{10,11,12}}",
+                expected: "{{10,11,12},{0,9/10,9/5},{0,0,0},{0,0,0}}",
+            },
+            TestCase {
+                id: "More columns than rows",
+                matrix: "{{1,2},{3,4},{5,6},{7,8}}",
+                expected: "{{7,8},{0,6/7},{0,0},{0,0}}",
+            },
+        ]
+        .into_iter()
+        .for_each(|test| perform_test(test, Matrix::<Rational<i32>>::from_str))
     }
 }
