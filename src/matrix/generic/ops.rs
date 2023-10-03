@@ -1,7 +1,4 @@
-use std::{
-    ops::{Add, Neg, Sub},
-    str::FromStr,
-};
+use std::ops::{Add, Neg, Sub};
 
 use crate::{
     equality::Equals,

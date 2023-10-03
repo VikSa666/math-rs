@@ -1,6 +1,6 @@
 pub mod determinant;
-
-use std::str::FromStr;
+pub mod equality;
+pub mod parser;
 
 use crate::structures::Ring;
 
@@ -25,6 +25,15 @@ where
 
     pub fn dimension(&self) -> usize {
         self.dimension
+    }
+
+    pub fn diagonal_is_zero(&self, tolerance: f32) -> bool {
+        for row in 0..self.dimension() {
+            if self.data[row][row].is_zero(tolerance) {
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -61,14 +70,6 @@ impl<R: Ring> std::fmt::Display for SquareMatrix<R> {
             output.push_str(&format!("{:?}\n", row));
         }
         write!(f, "{}", output)
-    }
-}
-
-impl<R: Ring> FromStr for SquareMatrix<R> {
-    type Err = MatrixError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
     }
 }
 

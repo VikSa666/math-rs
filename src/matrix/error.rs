@@ -8,6 +8,7 @@ pub enum MatrixError {
     MatrixError(String),
     ParseError(String),
     NonSquareMatrix,
+    InvalidDimension(usize),
 }
 
 impl std::fmt::Display for MatrixError {
@@ -25,6 +26,9 @@ impl std::fmt::Display for MatrixError {
             MatrixError::MatrixError(e) => write!(f, "Matrix error: {}", e),
             MatrixError::ParseError(e) => write!(f, "Parse error: {}", e),
             MatrixError::NonSquareMatrix => write!(f, "The matrix is not square"),
+            MatrixError::InvalidDimension(dimension) => {
+                write!(f, "The dimension {} is invalid", dimension)
+            }
         }
     }
 }

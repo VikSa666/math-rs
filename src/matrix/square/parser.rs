@@ -2,9 +2,9 @@ use std::str::FromStr;
 
 use crate::structures::Ring;
 
-use super::{Matrix, MatrixError};
+use super::{MatrixError, SquareMatrix};
 
-impl<R: Ring> Matrix<R> {
+impl<R: Ring> SquareMatrix<R> {
     fn parse(input: &str) -> Result<Self, MatrixError> {
         let mut matrix = vec![];
         let processed_input = input.trim().split_whitespace().collect::<String>();
@@ -29,7 +29,7 @@ impl<R: Ring> Matrix<R> {
     }
 }
 
-impl<R: Ring> FromStr for Matrix<R> {
+impl<R: Ring> FromStr for SquareMatrix<R> {
     type Err = MatrixError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -58,21 +58,21 @@ impl<R: Ring> FromStr for Matrix<R> {
 /// Will return error if some of the elements are not parsable as [`Real`](crate::structures::reals::Real).
 /// Also if
 #[macro_export]
-macro_rules! matrix_reals {
+macro_rules! square_matrix_reals {
     ($s:expr) => {
         Matrix::<Real>::from_str($s)
     };
 }
 
 #[macro_export]
-macro_rules! matrix_integers {
+macro_rules! square_matrix_integers {
     ($s:expr) => {
         Matrix::<Integer<i32>>::from_str($s)
     };
 }
 
 #[macro_export]
-macro_rules! matrix_rationals {
+macro_rules! square_matrix_rationals {
     ($s:expr) => {
         Matrix::<Rational<i32>>::from_str($s)
     };
@@ -82,7 +82,7 @@ macro_rules! matrix_rationals {
 mod test {
     use crate::{
         equality::Equals,
-        matrix::generic::Matrix,
+        matrix::{generic::Matrix, square::SquareMatrix},
         structures::{integers::Integer, rationals::Rational, reals::Real, Ring},
     };
     use std::str::FromStr;
@@ -92,13 +92,33 @@ mod test {
         struct TestCase<'a, R: Ring> {
             id: &'a str,
             input: &'a str,
-            expected: Matrix<R>,
+            expected: SquareMatrix<R>,
         }
         vec![
             TestCase {
-                id: "Square easy matrix",
+                id: "Square matrix 1x1",
+                input: "{{1}}",
+                expected: SquareMatrix {
+                    dimension: 1,
+                    data: vec![vec![Integer::new(1)]],
+                },
+            },
+            TestCase {
+                id: "Square matrix 2x2",
+                input: "{{1,2},{1,2}}",
+                expected: SquareMatrix {
+                    dimension: 2,
+                    data: vec![
+                        vec![Integer::new(1), Integer::new(2)],
+                        vec![Integer::new(1), Integer::new(2)],
+                    ],
+                },
+            },
+            TestCase {
+                id: "Square matrix 3x3",
                 input: "{{1,2,3},{1,2,3},{1,1,1}}",
-                expected: Matrix {
+                expected: SquareMatrix {
+                    dimension: 3,
                     data: vec![
                         vec![Integer::new(1), Integer::new(2), Integer::new(3)],
                         vec![Integer::new(1), Integer::new(2), Integer::new(3)],
@@ -106,28 +126,10 @@ mod test {
                     ],
                 },
             },
-            TestCase {
-                id: "Matrix one column",
-                input: "{{1},{1},{1}}",
-                expected: Matrix {
-                    data: vec![
-                        vec![Integer::new(1)],
-                        vec![Integer::new(1)],
-                        vec![Integer::new(1)],
-                    ],
-                },
-            },
-            TestCase {
-                id: "Matrix one row",
-                input: "{{1,2,3}}",
-                expected: Matrix {
-                    data: vec![vec![Integer::new(1), Integer::new(2), Integer::new(3)]],
-                },
-            },
         ]
         .into_iter()
         .for_each(|test| {
-            let matrix = Matrix::<Integer<i32>>::parse(test.input);
+            let matrix = SquareMatrix::<Integer<i32>>::parse(test.input);
             assert!(matrix.is_ok(), "Test case {} failed", test.id);
             assert!(
                 matrix.unwrap().equals(&test.expected, 0.0001),
@@ -136,18 +138,18 @@ mod test {
             );
         });
         let matrix_string = "{{1,2,3},{1,2,3},{1,1,1}}";
-        let matrix = Matrix::<Integer<i32>>::parse(matrix_string);
+        let matrix = SquareMatrix::<Integer<i32>>::parse(matrix_string);
         assert!(matrix.is_ok());
         println!("{}", matrix.unwrap())
     }
 
     #[test]
     fn macro_calls_should_not_fail() {
-        let matrix_integers = matrix_integers!("{{1,2,3},{1,2,3},{1,1,1}}").unwrap();
+        let matrix_integers = square_matrix_integers!("{{1,2,3},{1,2,3},{1,1,1}}").unwrap();
         println!("{}", matrix_integers);
-        let matrix_rationals = matrix_rationals!("{{1,2,3},{1,2,3},{1,1,1}}").unwrap();
+        let matrix_rationals = square_matrix_rationals!("{{1,2,3},{1,2,3},{1,1,1}}").unwrap();
         println!("{}", matrix_rationals);
-        let matrix_reals = matrix_reals!("{{1,2,3},{1,2,3},{1,1,1}}").unwrap();
+        let matrix_reals = square_matrix_reals!("{{1,2,3},{1,2,3},{1,1,1}}").unwrap();
         println!("{}", matrix_reals);
     }
 
@@ -155,7 +157,7 @@ mod test {
     #[should_panic]
     fn macro_calls_should_fail() {
         let matrix_fail =
-            matrix_integers!("{{1.1, 1.2, 1.3}, {1.1, 1.2, 1.3}, {1.1, 1.2, 1.3}}").unwrap();
+            square_matrix_integers!("{{1.1, 1.2, 1.3}, {1.1, 1.2, 1.3}, {1.1, 1.2, 1.3}}").unwrap();
         println!("{}", matrix_fail);
     }
 }

@@ -1,8 +1,6 @@
 pub mod ops;
 pub mod parser;
 
-use std::str::FromStr;
-
 use crate::structures::Ring;
 
 use super::{AsMatrix, MatrixError};
