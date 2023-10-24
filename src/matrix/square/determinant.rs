@@ -112,53 +112,8 @@ fn bareiss_algorithm<R: Ring + PartialOrd>(
         ));
     }
     let dimension = matrix.dimension();
-    println!("Starting the computation");
 
     for k in 0..dimension - 1 {
-        println!("{k}");
-        let diagonal_element = if k.checked_sub(1).is_none() {
-            R::one()
-        } else {
-            matrix_cloned.get(k - 1, k - 1)?.to_owned()
-        };
-        for i in k + 1..dimension {
-            for j in k + 1..dimension {
-                let element = ((matrix_cloned.get(i, j)?.to_owned()
-                    * matrix_cloned.get(k, k)?.to_owned())
-                    - (matrix_cloned.get(i, k)?.to_owned() * matrix_cloned.get(k, j)?.to_owned()))
-                    / diagonal_element.clone();
-                matrix_cloned.set(i, j, element)?;
-            }
-        }
-    }
-    let sign = match sign {
-        Signature::Even => R::one(),
-        Signature::Odd => -R::one(),
-    };
-
-    Ok(matrix_cloned
-        .get(matrix.dimension() - 1, matrix.dimension() - 1)?
-        .to_owned()
-        * sign)
-}
-
-/// Determinant of an NxN matrix using the [Bareiss algorithm](https://en.wikipedia.org/wiki/Bareiss_algorithm).
-fn dirty_bareiss_algorithm<R: Ring + PartialOrd>(
-    matrix: &SquareMatrix<R>,
-    tolerance: f32,
-) -> Result<R, MatrixError> {
-    let mut matrix_cloned = matrix.clone();
-    let sign = matrix_cloned.maximize_diagonal()?;
-    if matrix_cloned.diagonal_is_zero(tolerance) {
-        return Err(MatrixError::MatrixError(
-            "Matrix has zero elements in diagonal".to_string(),
-        ));
-    }
-    let dimension = matrix.dimension();
-    println!("Starting the computation");
-
-    for k in 0..dimension - 1 {
-        println!("{k}");
         let diagonal_element = if k.checked_sub(1).is_none() {
             R::one()
         } else {
@@ -180,10 +135,7 @@ fn dirty_bareiss_algorithm<R: Ring + PartialOrd>(
         Signature::Odd => -R::one(),
     };
 
-    Ok(matrix_cloned
-        .get(matrix.dimension() - 1, matrix.dimension() - 1)?
-        .to_owned()
-        * sign)
+    Ok(matrix_cloned.data()[matrix.dimension() - 1][matrix.dimension() - 1].to_owned() * sign)
 }
 
 fn laplace_expansion<R: Ring + PartialOrd>(matrix: &SquareMatrix<R>) -> Result<R, MatrixError> {
@@ -205,22 +157,19 @@ fn laplace_expansion<R: Ring + PartialOrd>(matrix: &SquareMatrix<R>) -> Result<R
         }
         let sign = if column % 2 == 0 { R::one() } else { -R::one() };
         determinant =
-            determinant + sign * matrix.get(0, column)?.clone() * laplace_expansion(&submatrix)?;
+            determinant + sign * matrix.data()[0][column].clone() * laplace_expansion(&submatrix)?;
     }
     Ok(determinant)
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{time::Instant, vec};
+    use std::vec;
 
     use crate::{
-        matrix::{
-            square::{
-                determinant::{dirty_bareiss_algorithm, DeterminantMethod, Signature},
-                SquareMatrix,
-            },
-            AsMatrix,
+        matrix::square::{
+            determinant::{DeterminantMethod, Signature},
+            SquareMatrix,
         },
         num_types::FromF32,
         structures::reals::Real,
@@ -285,45 +234,6 @@ mod tests {
                 .determinant(DeterminantMethod::BareissAlgorithm, TOL),
             Ok(Real::from_f32(14., TOL))
         );
-    }
-
-    #[test]
-    fn benchmark_by_hand() {
-        let rows = vec![vec![Real::from_f32(1., TOL); 1e3 as usize]; 1e3 as usize];
-        let matrix = SquareMatrix::<Real>::try_from(rows).unwrap();
-        let start_time = Instant::now();
-        let _determinant = matrix
-            .determinant(DeterminantMethod::BareissAlgorithm, TOL)
-            .unwrap();
-        let end_time = Instant::now();
-        let time = end_time - start_time;
-
-        let start_time = Instant::now();
-        let _determinant_dirty = dirty_bareiss_algorithm(&matrix, TOL).unwrap();
-        let end_time = Instant::now();
-        // assert_eq!(determinant, Real::from_f32(1., TOL));
-        println!("Time with dirty algorithm: {:?}", end_time - start_time);
-        println!("Time with normal algorithm: {:?}", time);
-    }
-
-    #[test]
-    fn benchmark_get_function() {
-        let matrix = SquareMatrix::<Real>::try_from(vec![vec![Real::from_f32(1., TOL)]]).unwrap();
-        let start_time = Instant::now();
-        let iterations = 1e10 as usize;
-        for _ in 0..iterations {
-            matrix.get(0, 0).unwrap();
-        }
-        let end_time = Instant::now();
-        let time_get = end_time - start_time;
-        let start_time = Instant::now();
-        for _ in 0..iterations {
-            matrix.data()[0][0].to_owned();
-        }
-        let end_time = Instant::now();
-        let time_data = end_time - start_time;
-        println!("Time with get function: {:?}", time_get);
-        println!("Time with data: {:?}", time_data);
     }
 
     #[test]
