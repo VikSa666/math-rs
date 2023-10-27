@@ -69,6 +69,46 @@ where
         }
         Ok(matrix)
     }
+
+    /// Returns a brand new matrix that is equal to the original matrix, but with the column
+    /// you specify removed.
+    ///
+    /// ## Example
+    ///
+    /// If you have the matrix
+    /// ```txt
+    ///     1   2   3
+    /// M = 4   5   6
+    ///     7   8   9
+    /// ```
+    /// and column is 1, then the result will be the matrix
+    /// ```txt
+    ///     1   3
+    /// R = 4   6
+    ///     7   9
+    /// ```
+    ///
+    /// ## Errors
+    ///
+    /// Returns an error if you give a column index out of bounds.
+    fn remove_column(&self, column: usize) -> Result<Self, MatrixError> {
+        if column >= self.columns() {
+            return Err(MatrixError::ColumnOutOfBounds(column));
+        }
+
+        let mut new_matrix = Self::with_capacity(self.rows(), self.columns() - 1);
+
+        for i in 0..self.rows() {
+            for j in 0..column {
+                new_matrix.data_mut()[i][j] = self.data()[i][j].clone();
+            }
+            for j in column + 1..self.columns() {
+                new_matrix.data_mut()[i][j - 1] = self.data()[i][j].clone();
+            }
+        }
+
+        Ok(new_matrix)
+    }
 }
 
 #[cfg(test)]
@@ -80,6 +120,48 @@ mod tests {
         matrix::{error::MatrixError, generic::Matrix, AsMatrix},
         structures::{integers::Integer, rationals::Rational, reals::Real, Ring},
     };
+
+    #[test]
+    fn remove_columns_should_not_panic() {
+        let matrix = Matrix::<Integer<i32>>::try_from(vec![
+            vec![
+                Integer::new(1),
+                Integer::new(2),
+                Integer::new(3),
+                Integer::new(4),
+            ],
+            vec![
+                Integer::new(2),
+                Integer::new(1),
+                Integer::new(4),
+                Integer::new(3),
+            ],
+            vec![
+                Integer::new(4),
+                Integer::new(3),
+                Integer::new(2),
+                Integer::new(1),
+            ],
+            vec![
+                Integer::new(3),
+                Integer::new(4),
+                Integer::new(1),
+                Integer::new(2),
+            ],
+        ])
+        .unwrap();
+
+        let removed_column_matrix = matrix.remove_column(2).unwrap();
+        let expected = Matrix::<Integer<i32>>::try_from(vec![
+            vec![Integer::new(1), Integer::new(2), Integer::new(4)],
+            vec![Integer::new(2), Integer::new(1), Integer::new(3)],
+            vec![Integer::new(4), Integer::new(3), Integer::new(1)],
+            vec![Integer::new(3), Integer::new(4), Integer::new(2)],
+        ])
+        .unwrap();
+
+        pretty_assertions::assert_eq!(expected, removed_column_matrix)
+    }
 
     #[test]
     fn swap_rows() {

@@ -139,20 +139,21 @@ fn bareiss_algorithm<R: Ring + PartialOrd>(
 }
 
 fn laplace_expansion<R: Ring + PartialOrd>(matrix: &SquareMatrix<R>) -> Result<R, MatrixError> {
+    if matrix.dimension() == 1 {
+        return Ok(matrix.data()[0][0].clone());
+    }
     let mut determinant = R::zero();
     for column in 0..matrix.dimension() {
-        let mut submatrix =
-            SquareMatrix::with_capacity(matrix.dimension() - 1, matrix.dimension() - 1);
+        let mut submatrix = SquareMatrix::new(
+            matrix.dimension() - 1,
+            vec![vec![R::zero(); matrix.dimension() - 1]; matrix.dimension() - 1],
+        );
         for row in 1..matrix.dimension() {
-            for column2 in 0..matrix.dimension() {
-                if column2 == column {
-                    continue;
-                }
-                submatrix
-                    .data_mut()
-                    .get_mut(row - 1)
-                    .ok_or(MatrixError::RowOutOfBounds(row - 1))?
-                    .push(matrix.get(row, column2)?.clone());
+            for column2 in 0..column {
+                submatrix.data_mut()[row - 1][column2] = matrix.data()[row][column2].clone();
+            }
+            for column2 in column + 1..matrix.dimension() {
+                submatrix.data_mut()[row - 1][column2 - 1] = matrix.data()[row][column2].clone();
             }
         }
         let sign = if column % 2 == 0 { R::one() } else { -R::one() };
