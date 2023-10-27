@@ -7,11 +7,12 @@ use crate::{
     equality::Equals,
     identities::{One, Zero},
     num_types::{AsF32, FromF32},
+    traits::Abs,
 };
 
 use super::{errors::StructureError, Field, Group, Ring};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
 pub struct Real {
     value: f32,
 }
@@ -68,12 +69,6 @@ impl std::fmt::Display for Real {
     }
 }
 
-impl PartialEq for Real {
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
-    }
-}
-
 impl Neg for Real {
     type Output = Self;
 
@@ -105,6 +100,13 @@ impl FromF32 for Real {
 impl AsF32 for Real {
     fn as_f32(&self) -> f32 {
         self.value
+    }
+}
+
+impl Abs for Real {
+    type Output = Real;
+    fn abs_value(&self) -> Self::Output {
+        Self::new(self.value.abs())
     }
 }
 

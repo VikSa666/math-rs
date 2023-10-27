@@ -1,6 +1,6 @@
 use wasm_bindgen::JsValue;
 
-use crate::matrix::error::MatrixError;
+use crate::matrix::MatrixError;
 
 impl From<MatrixError> for JsValue {
     fn from(value: MatrixError) -> Self {

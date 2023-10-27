@@ -13,6 +13,8 @@ use std::{
 use crate::{
     equality::Equals,
     identities::{One, Zero},
+    num_types::AsF32,
+    traits::Abs,
 };
 
 /// Defines the necessary behavior of an element of a group.
@@ -66,12 +68,14 @@ pub trait Group:
     Add<Output = Self>
     + Sub<Output = Self>
     + Neg<Output = Self>
+    + Abs<Output = Self>
     + Zero
     + Equals
     + Sized
     + Clone
     + Display
     + FromStr
+    + std::fmt::Debug
 {
     /// Will return the identity element. It is unnecessary as it will be the same as the defined
     /// [`Zero`] element. But for the sake of maintaining the mathematical notation of the definition, it is written.
@@ -166,7 +170,9 @@ impl_group_for_primitives!(isize, i8, i16, i32, i64, i128);
 /// 2. [MathWorld](https://mathworld.wolfram.com/Ring.html)
 /// 3. [ProofWiki](https://proofwiki.org/wiki/Definition:Ring_(Abstract_Algebra))
 /// 4. [PlanetMath](https://planetmath.org/definitionofaring)
-pub trait Ring: Group + Mul<Output = Self> + Rem<Output = Self> + One + Div<Output = Self> {
+pub trait Ring:
+    Group + Mul<Output = Self> + Rem<Output = Self> + One + Div<Output = Self> + AsF32
+{
     /// Will return the result of the operation _+_ between the current element and the element passed as
     /// argument.
     fn sum(&self, rhs: &Self) -> Self;

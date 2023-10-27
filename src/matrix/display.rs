@@ -1,11 +1,11 @@
 use crate::structures::Ring;
 
-use super::Matrix;
+use super::{generic::Matrix, AsMatrix};
 
-impl<R: Ring> std::fmt::Display for Matrix<R> {
+impl<R: Ring + PartialOrd> std::fmt::Display for Matrix<R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut result = String::new();
-        for row in self.data.iter() {
+        for row in self.data().iter() {
             for element in row.iter() {
                 result.push_str(&format!("{} ", element));
             }
@@ -19,7 +19,7 @@ impl<R: Ring> std::fmt::Display for Matrix<R> {
 mod test {
 
     use crate::{
-        matrix::Matrix,
+        matrix::generic::Matrix,
         structures::{integers::Integer, rationals::Rational},
     };
     #[test]

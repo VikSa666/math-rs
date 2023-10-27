@@ -1,9 +1,11 @@
+use std::str::FromStr;
+
 use crate::structures::Ring;
 
-use super::{error::MatrixError, Matrix};
+use super::{Matrix, MatrixError};
 
 impl<R: Ring> Matrix<R> {
-    pub fn parse(input: &str) -> Result<Self, MatrixError> {
+    fn parse(input: &str) -> Result<Self, MatrixError> {
         let mut matrix = vec![];
         let processed_input = input.trim().split_whitespace().collect::<String>();
         let inner = processed_input
@@ -23,7 +25,15 @@ impl<R: Ring> Matrix<R> {
                 .collect::<Result<Vec<R>, MatrixError>>()?;
             matrix.push(row);
         }
-        Ok(Self { data: matrix })
+        Self::try_from(matrix)
+    }
+}
+
+impl<R: Ring> FromStr for Matrix<R> {
+    type Err = MatrixError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::parse(s)
     }
 }
 
@@ -50,21 +60,21 @@ impl<R: Ring> Matrix<R> {
 #[macro_export]
 macro_rules! matrix_reals {
     ($s:expr) => {
-        Matrix::<Real>::parse($s)
+        Matrix::<Real>::from_str($s)
     };
 }
 
 #[macro_export]
 macro_rules! matrix_integers {
     ($s:expr) => {
-        Matrix::<Integer<i32>>::parse($s)
+        Matrix::<Integer<i32>>::from_str($s)
     };
 }
 
 #[macro_export]
 macro_rules! matrix_rationals {
     ($s:expr) => {
-        Matrix::<Rational<i32>>::parse($s)
+        Matrix::<Rational<i32>>::from_str($s)
     };
 }
 
@@ -72,9 +82,10 @@ macro_rules! matrix_rationals {
 mod test {
     use crate::{
         equality::Equals,
-        matrix::Matrix,
+        matrix::generic::Matrix,
         structures::{integers::Integer, rationals::Rational, reals::Real, Ring},
     };
+    use std::str::FromStr;
 
     #[test]
     fn parse_from_integers_should_not_fail() {

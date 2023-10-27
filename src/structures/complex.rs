@@ -7,6 +7,7 @@ use crate::{
     equality::Equals,
     identities::{One, Zero},
     num_types::{AsF32, FromF32},
+    traits::Abs,
 };
 
 use super::{errors::StructureError, reals::Real, Field, Group, Ring};
@@ -137,6 +138,23 @@ impl AsF32 for Complex {
     }
 }
 
+impl From<Real> for Complex {
+    fn from(value: Real) -> Self {
+        Self {
+            re: value,
+            im: Real::zero(),
+        }
+    }
+}
+
+impl Abs for Complex {
+    type Output = Complex;
+
+    fn abs_value(&self) -> Self::Output {
+        Self::from(self.modulus())
+    }
+}
+
 impl Group for Complex {
     fn identity() -> Self {
         Self::zero()
@@ -214,6 +232,14 @@ impl Field for Complex {
             re: conj.re / norm,
             im: conj.im / norm,
         }
+    }
+}
+
+impl PartialOrd for Complex {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let self_module = self.modulus();
+        let other_module = other.modulus();
+        self_module.partial_cmp(&other_module)
     }
 }
 

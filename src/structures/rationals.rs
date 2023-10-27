@@ -11,12 +11,13 @@ use crate::{
     equality::Equals,
     identities::{One, Zero},
     num_types::{AsF32, FromF32},
+    traits::Abs,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 pub struct Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     numerator: Integer<R>,
     denominator: Integer<R>,
@@ -36,7 +37,7 @@ impl_rational_from_primitives!(isize, i8, i16, i32, i64, i128);
 
 impl<R> Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     pub fn new(numerator: Integer<R>, denominator: Integer<R>) -> Self {
         Self {
@@ -57,7 +58,7 @@ where
 
 impl<R> Display for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}/{}", self.numerator, self.denominator)
@@ -66,7 +67,7 @@ where
 
 impl<R> Add for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -81,7 +82,7 @@ where
 
 impl<R> Mul for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -96,7 +97,7 @@ where
 
 impl<R> Rem for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -111,7 +112,7 @@ where
 
 impl<R> Neg for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -126,7 +127,7 @@ where
 
 impl<R> Sub for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -137,7 +138,7 @@ where
 
 impl<R> Zero for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn zero() -> Self {
         Self::new(Integer::zero(), Integer::one())
@@ -150,7 +151,7 @@ where
 
 impl<R> One for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn one() -> Self {
         Self::new(Integer::one(), Integer::one())
@@ -163,7 +164,7 @@ where
 
 impl<R> FromStr for Rational<R>
 where
-    R: Ring + AsF32 + FromF32,
+    R: Ring + PartialOrd + AsF32 + FromF32,
 {
     type Err = StructureError;
 
@@ -197,7 +198,7 @@ where
 
 impl<R> Equals for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
         (self.numerator.clone() * rhs.denominator.clone()).equals(
@@ -209,7 +210,7 @@ where
 
 impl<R> AsF32 for Rational<R>
 where
-    R: Ring + AsF32,
+    R: Ring + PartialOrd + AsF32,
 {
     fn as_f32(&self) -> f32 {
         self.numerator.as_f32() / self.denominator.as_f32()
@@ -218,7 +219,7 @@ where
 
 impl<R> FromF32 for Rational<R>
 where
-    R: Ring + FromF32 + AsF32,
+    R: Ring + PartialOrd + FromF32 + AsF32,
 {
     /// The implementation of [`FromF32`] for the [`Rational`] type is a bit custom, as it is not trivial
     /// to convert an [`f32`] into a [`Rational`] number. With the tolerance given, this function
@@ -239,9 +240,24 @@ where
     }
 }
 
+impl<R> Abs for Rational<R>
+where
+    R: Ring + PartialOrd,
+{
+    type Output = Self;
+
+    fn abs_value(&self) -> Self::Output {
+        Self {
+            numerator: self.numerator.abs_value(),
+            denominator: self.denominator.abs_value(),
+        }
+        .simplified()
+    }
+}
+
 impl<R> Group for Rational<R>
 where
-    R: Ring + FromF32 + AsF32,
+    R: Ring + PartialOrd + FromF32 + AsF32,
 {
     fn identity() -> Self {
         Self::new(Integer::zero(), Integer::one())
@@ -258,7 +274,7 @@ where
 
 impl<R> Div for Rational<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -273,7 +289,7 @@ where
 
 impl<R> Ring for Rational<R>
 where
-    R: Ring + FromF32 + AsF32,
+    R: Ring + PartialOrd + FromF32 + AsF32,
 {
     fn sum(&self, rhs: &Self) -> Self {
         self.clone() + rhs.clone()
@@ -286,7 +302,7 @@ where
 
 impl<R> Field for Rational<R>
 where
-    R: Ring + FromF32 + AsF32,
+    R: Ring + PartialOrd + FromF32 + AsF32,
 {
     fn inverse_multiplication(&self) -> Self {
         Self {
@@ -401,7 +417,7 @@ mod tests {
 
     #[test]
     fn parse_rational_from_string_should_not_fail() {
-        struct TestCase<'a, R: Ring> {
+        struct TestCase<'a, R: Ring + PartialOrd> {
             id: &'a str,
             input: &'a str,
             expected: Rational<R>,

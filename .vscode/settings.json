@@ -23,4 +23,5 @@
     },
     "rust-analyzer.assist.expressionFillDefault": "default",
     "rust-analyzer.cargo.buildScripts.enable": false,
+    "rust-analyzer.showUnlinkedFileNotification": false,
 }

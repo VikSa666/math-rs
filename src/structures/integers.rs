@@ -10,20 +10,21 @@ use crate::{
     equality::Equals,
     identities::{One, Zero},
     num_types::{AsF32, FromF32},
+    traits::Abs,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 /// Representation of an integer number.
 pub struct Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     value: R,
 }
 
 impl<R> Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     /// Returns a new instance of [`Integer`], given a value that can be
     /// any of the following types: [`isize`], [`i8`], [`i16`], [`i32`], [`i64`], [`i128`].
@@ -39,7 +40,7 @@ where
 
 impl<R> From<R> for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn from(value: R) -> Self {
         Self { value }
@@ -48,7 +49,7 @@ where
 
 impl<R> Display for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)
@@ -57,7 +58,7 @@ where
 
 impl<R> Add for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -70,7 +71,7 @@ where
 
 impl<R> Mul for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -83,7 +84,7 @@ where
 
 impl<R> Rem for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -96,7 +97,7 @@ where
 
 impl<R> Neg for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -107,7 +108,7 @@ where
 
 impl<R> Sub for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -120,7 +121,7 @@ where
 
 impl<R> Zero for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn zero() -> Self {
         Self::new(Zero::zero())
@@ -133,7 +134,7 @@ where
 
 impl<R> One for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn one() -> Self {
         Self::new(One::one())
@@ -146,7 +147,7 @@ where
 
 impl<R> FromStr for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Err = StructureError;
 
@@ -159,7 +160,7 @@ where
 
 impl<R> Equals for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn equals(&self, rhs: &Self, tolerance: f32) -> bool {
         self.value.equals(&rhs.value, tolerance)
@@ -168,7 +169,7 @@ where
 
 impl<R> AsF32 for Integer<R>
 where
-    R: Ring + AsF32,
+    R: Ring + PartialOrd + AsF32,
 {
     fn as_f32(&self) -> f32 {
         self.value.as_f32()
@@ -177,7 +178,7 @@ where
 
 impl<R> FromF32 for Integer<R>
 where
-    R: Ring + FromF32,
+    R: Ring + PartialOrd + FromF32,
 {
     fn from_f32(value: f32, tolerance: f32) -> Self {
         Self::new(R::from_f32(value, tolerance))
@@ -186,7 +187,7 @@ where
 
 impl<R> Group for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn identity() -> Self {
         Self::new(Zero::zero())
@@ -203,7 +204,7 @@ where
 
 impl<R> Div for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     type Output = Self;
 
@@ -212,9 +213,21 @@ where
     }
 }
 
+impl<R> Abs for Integer<R>
+where
+    R: Ring + PartialOrd,
+{
+    type Output = Self;
+
+    fn abs_value(&self) -> Self::Output {
+        let val = self.value.abs_value();
+        Self::new(val)
+    }
+}
+
 impl<R> Ring for Integer<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     fn sum(&self, rhs: &Self) -> Self {
         self.clone() + rhs.clone()
