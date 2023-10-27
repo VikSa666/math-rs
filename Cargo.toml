@@ -28,5 +28,9 @@ tracing-wasm = "0.2.1"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
 [[bench]]
-name = "matrix"
+name = "matrix-ops"
+harness = false
+
+[[bench]]
+name = "determinant"
 harness = false

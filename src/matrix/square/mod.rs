@@ -23,6 +23,30 @@ where
         Self { dimension, data }
     }
 
+    /// Creates a new [`SquareMatrix`] with the given `dimension` and a given function
+    /// or closure that takes the indexes as arguments.
+    ///
+    /// ## Example
+    ///
+    /// Given the parameters
+    /// * `dimension = 3`,
+    /// * `fn f(i: usize, j: usize) { i + j }`
+    /// we would get the matrix
+    /// ```txt
+    /// 0 1 2
+    /// 1 2 3
+    /// 2 3 4
+    /// ```
+    pub fn from_fn(dimension: usize, f: fn(i: usize, j: usize) -> R) -> Self {
+        let mut data = vec![vec![R::zero(); dimension]; dimension];
+        for i in 0..dimension {
+            for j in 0..dimension {
+                data[i][j] = f(i, j)
+            }
+        }
+        Self::new(dimension, data)
+    }
+
     pub fn dimension(&self) -> usize {
         self.dimension
     }
@@ -153,6 +177,7 @@ mod tests {
     use crate::matrix::square::SquareMatrix;
     use crate::matrix::AsMatrix;
     use crate::structures::integers::Integer;
+    use crate::structures::rationals::Rational;
 
     #[test]
     fn test_square_matrix() {
@@ -201,5 +226,20 @@ mod tests {
                 vec![Integer::new(3), Integer::new(4)]
             ]
         );
+    }
+
+    #[test]
+    fn build_matrix_from_function_should_not_fail() {
+        let matrix = SquareMatrix::from_fn(3, |i, j| Rational::from((i + j) as isize));
+        let expected = SquareMatrix::new(
+            3,
+            vec![
+                vec![Rational::from(0), Rational::from(1), Rational::from(2)],
+                vec![Rational::from(1), Rational::from(2), Rational::from(3)],
+                vec![Rational::from(2), Rational::from(3), Rational::from(4)],
+            ],
+        );
+
+        pretty_assertions::assert_eq!(expected, matrix)
     }
 }

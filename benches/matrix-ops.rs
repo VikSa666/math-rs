@@ -56,5 +56,5 @@ fn bench_sum_with_incrementing_dimensions(c: &mut Criterion) {
     group.finish()
 }
 
-criterion_group!(benches, bench_sum_with_incrementing_dimensions, bench_sum);
+criterion_group!(benches, bench_sum_with_incrementing_dimensions, bench_sum,);
 criterion_main!(benches);
