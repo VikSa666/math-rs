@@ -17,7 +17,7 @@ where
 
 impl<R> SquareMatrix<R>
 where
-    R: Ring,
+    R: Ring + PartialOrd,
 {
     pub fn new(dimension: usize, data: Vec<Vec<R>>) -> Self {
         Self { dimension, data }
@@ -58,6 +58,95 @@ where
             }
         }
         false
+    }
+
+    /// This function returns a matrix with the given `row` and `column` removed.
+    ///
+    /// ## Example
+    ///
+    /// Given the matrix
+    /// ```txt
+    /// 1 2 3
+    /// 4 5 6
+    /// 7 8 9
+    /// ```
+    /// and the parameters
+    /// * `row = 1`
+    /// * `column = 2`
+    /// we would get the matrix
+    /// ```txt
+    /// 1 2
+    /// 7 8
+    /// ```
+    ///
+    /// ## Errors
+    /// It returns an error whenever the `row` or `column` are out of bounds.
+    ///
+    /// ## Time complexity
+    /// This function has a time complexity of `O(n^2)`.
+    pub fn minor(&self, row: usize, column: usize) -> Result<Self, MatrixError> {
+        if row >= self.dimension() {
+            return Err(MatrixError::RowOutOfBounds(row));
+        }
+        if column >= self.dimension() {
+            return Err(MatrixError::ColumnOutOfBounds(column));
+        }
+        let mut elements = Vec::with_capacity(self.dimension() - 1);
+        for i in 0..self.dimension() {
+            if i == row {
+                continue;
+            }
+            let mut new_row = Vec::with_capacity(self.dimension() - 1);
+            for j in 0..self.dimension() {
+                if j == column {
+                    continue;
+                }
+                new_row.push(self.data[i][j].clone());
+            }
+            elements.push(new_row);
+        }
+        Ok(Self {
+            dimension: self.dimension() - 1,
+            data: elements,
+        })
+    }
+
+    /// Swaps the rows with 0 pivot element with the first row that has a non-zero pivot element.
+    ///
+    /// It takes a mutalbe reference of the matrix and mutates it. If at some point, the matrix
+    /// has a column with all zero elements, it returns `false`. This will mean that the
+    /// matrix is **singular**.
+    ///
+    /// ## Example
+    ///
+    /// Given the matrix
+    /// ```txt
+    /// 0 1 2
+    /// 1 2 3
+    /// 2 3 4
+    /// ```
+    /// we would get the matrix
+    /// ```txt
+    /// 1 2 3
+    /// 0 1 2
+    /// 2 3 4
+    /// ```
+    ///
+    /// ## Time complexity
+    /// This function has a time complexity of `O(n^2)`.
+    pub fn swap_rows_with_0_pivot(&mut self, tolerance: f32) -> Result<bool, MatrixError> {
+        for row in 0..self.dimension() {
+            if self.data[row][row].is_zero(tolerance) {
+                for row2 in row + 1..self.dimension() {
+                    if !self.data[row2][row].is_zero(tolerance) {
+                        self.swap_rows(row, row2)?;
+                        return Ok(true);
+                    }
+                }
+                return Ok(false);
+            }
+        }
+        Ok(false)
     }
 }
 
@@ -241,5 +330,61 @@ mod tests {
         );
 
         pretty_assertions::assert_eq!(expected, matrix)
+    }
+
+    #[test]
+    fn minor_computation_should_not_fail() {
+        let matrix = SquareMatrix::from_fn(3, |i, j| Rational::from((i + j) as isize));
+        let expected = SquareMatrix::new(
+            2,
+            vec![
+                vec![Rational::from(0), Rational::from(1)],
+                vec![Rational::from(2), Rational::from(3)],
+            ],
+        );
+        let computed = matrix.minor(1, 2).unwrap();
+        pretty_assertions::assert_eq!(expected, computed);
+
+        let huge_matrix = SquareMatrix::from_fn(100, |i, j| {
+            if (i as isize - j as isize).abs() < 3 {
+                Integer::from(1)
+            } else {
+                Integer::from(0)
+            }
+        });
+        let expected = SquareMatrix::from_fn(99, |i, j| {
+            if (i as isize - j as isize).abs() < 3 {
+                Integer::from(1)
+            } else {
+                Integer::from(0)
+            }
+        });
+        let start = std::time::Instant::now();
+        let computed = huge_matrix.minor(0, 0).unwrap();
+        let time = std::time::Instant::now() - start;
+        pretty_assertions::assert_eq!(expected, computed);
+        assert!(time.as_micros() < 1000);
+    }
+
+    #[test]
+    fn swap_rows_with_0_pivot_should_not_fail() {
+        let mut matrix = SquareMatrix::new(
+            3,
+            vec![
+                vec![Integer::new(0), Integer::new(1), Integer::new(2)],
+                vec![Integer::new(1), Integer::new(2), Integer::new(3)],
+                vec![Integer::new(2), Integer::new(3), Integer::new(4)],
+            ],
+        );
+        let expected = SquareMatrix::new(
+            3,
+            vec![
+                vec![Integer::new(1), Integer::new(2), Integer::new(3)],
+                vec![Integer::new(0), Integer::new(1), Integer::new(2)],
+                vec![Integer::new(2), Integer::new(3), Integer::new(4)],
+            ],
+        );
+        matrix.swap_rows_with_0_pivot(1e-12).unwrap();
+        pretty_assertions::assert_eq!(expected, matrix);
     }
 }

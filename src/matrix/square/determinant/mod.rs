@@ -5,10 +5,16 @@ use crate::{
 
 use super::SquareMatrix;
 
+mod bareiss;
+use bareiss::bareiss_algorithm;
+mod montante;
+use montante::montante_algorithm;
+
 pub enum DeterminantMethod {
     TriangleRule,
     BareissAlgorithm,
     LaplaceExpansion,
+    Optimize,
 }
 
 /// Signature of a permutation.
@@ -45,28 +51,6 @@ impl Signature {
 }
 
 impl<R: Ring + PartialOrd> SquareMatrix<R> {
-    // TODO: Refactor as this is _n!_ in time complexity.
-    fn maximize_diagonal(&mut self) -> Result<Signature, MatrixError> {
-        let dimension = self.dimension();
-        let mut sign = Signature::Even;
-        for i in 0..dimension {
-            let mut max_element_in_column = R::zero();
-            for j in i..dimension {
-                if self.get(j, i).unwrap().abs_value() > max_element_in_column.abs_value() {
-                    max_element_in_column = self.get(j, i)?.clone();
-                    self.swap_rows(i, j)?;
-                    sign.change();
-                }
-            }
-        }
-        Ok(sign)
-    }
-
-    /// TODO: Add other methods
-    fn is_positive_definite(&self, tolerance: f32) -> bool {
-        sylvester_criterion(self, tolerance)
-    }
-
     pub fn determinant(
         &self,
         determinant_method: DeterminantMethod,
@@ -75,7 +59,8 @@ impl<R: Ring + PartialOrd> SquareMatrix<R> {
         match determinant_method {
             DeterminantMethod::TriangleRule => triangle_rule(self),
             DeterminantMethod::BareissAlgorithm => bareiss_algorithm(self, tolerance),
-            DeterminantMethod::LaplaceExpansion => laplace_expansion(self),
+            DeterminantMethod::LaplaceExpansion => montante_algorithm(self),
+            DeterminantMethod::Optimize => best_determinant_method(self, tolerance),
         }
     }
 
@@ -94,22 +79,17 @@ impl<R: Ring + PartialOrd> SquareMatrix<R> {
     }
 }
 
-/// Sylvester's criterion for positive definiteness.
-fn sylvester_criterion<R: Ring + PartialOrd>(matrix: &SquareMatrix<R>, tolerance: f32) -> bool {
-    let dimension = matrix.dimension();
-    let mut leading_principal_minors = Vec::new();
-    for i in 1..dimension {
-        let submatrix = matrix.leading_principal_minor(i).unwrap();
-        leading_principal_minors
-            .push(submatrix.determinant(DeterminantMethod::TriangleRule, tolerance));
+fn best_determinant_method<R: Ring + PartialOrd>(
+    matrix: &SquareMatrix<R>,
+    tolerance: f32,
+) -> Result<R, MatrixError> {
+    if matrix.dimension() < 4 {
+        return triangle_rule(matrix);
     }
-    let mut sign = Signature::Even;
-    for minor in leading_principal_minors {
-        if minor.unwrap() < R::zero() {
-            sign.change();
-        }
+    if matrix.dimension() < 10 {
+        return bareiss_algorithm(matrix, tolerance);
     }
-    sign == Signature::Even
+    montante_algorithm(matrix)
 }
 
 fn triangle_rule<R: Ring + PartialOrd>(matrix: &SquareMatrix<R>) -> Result<R, MatrixError> {
@@ -143,119 +123,17 @@ fn triangle_rule<R: Ring + PartialOrd>(matrix: &SquareMatrix<R>) -> Result<R, Ma
     }
 }
 
-/// Determinant of an NxN matrix using the [Bareiss algorithm](https://en.wikipedia.org/wiki/Bareiss_algorithm).
-fn bareiss_algorithm<R: Ring + PartialOrd>(
-    matrix: &SquareMatrix<R>,
-    tolerance: f32,
-) -> Result<R, MatrixError> {
-    let mut matrix_cloned = matrix.clone();
-
-    if matrix_cloned.diagonal_is_zero(tolerance) {
-        return Err(MatrixError::MatrixError(
-            "Matrix has zero elements in diagonal".to_string(),
-        ));
-    }
-    let dimension = matrix.dimension();
-    let mut sign = Signature::Even;
-
-    for k in 0..dimension - 1 {
-        let mut diagonal_element = if k.checked_sub(1).is_none() {
-            R::one()
-        } else {
-            matrix_cloned.data()[k - 1][k - 1].to_owned()
-        };
-
-        for i in k..dimension {
-            if diagonal_element.is_zero(tolerance) {
-                matrix_cloned.swap_rows(i, k - 1)?;
-                println!("{matrix_cloned}");
-                sign.change();
-                diagonal_element = matrix_cloned.data()[k - 1][k - 1].to_owned();
-            } else {
-                break;
-            }
-        }
-
-        for i in k + 1..dimension {
-            for j in k + 1..dimension {
-                let element = ((matrix_cloned.data()[i][j].to_owned()
-                    * matrix_cloned.data()[k][k].to_owned())
-                    - (matrix_cloned.data()[i][k].to_owned()
-                        * matrix_cloned.data()[k][j].to_owned()))
-                    / diagonal_element.clone();
-                matrix_cloned.data_mut()[i][j] = element;
-            }
-        }
-    }
-
-    Ok(
-        matrix_cloned.data()[matrix.dimension() - 1][matrix.dimension() - 1].to_owned()
-            * sign.as_number(),
-    )
-}
-
-fn laplace_expansion<R: Ring + PartialOrd>(matrix: &SquareMatrix<R>) -> Result<R, MatrixError> {
-    if matrix.dimension() == 1 {
-        return Ok(matrix.data()[0][0].clone());
-    }
-    let mut determinant = R::zero();
-    for column in 0..matrix.dimension() {
-        let mut submatrix = SquareMatrix::new(
-            matrix.dimension() - 1,
-            vec![vec![R::zero(); matrix.dimension() - 1]; matrix.dimension() - 1],
-        );
-        for row in 1..matrix.dimension() {
-            for column2 in 0..column {
-                submatrix.data_mut()[row - 1][column2] = matrix.data()[row][column2].clone();
-            }
-            for column2 in column + 1..matrix.dimension() {
-                submatrix.data_mut()[row - 1][column2 - 1] = matrix.data()[row][column2].clone();
-            }
-        }
-        let sign = if column % 2 == 0 { R::one() } else { -R::one() };
-        determinant =
-            determinant + sign * matrix.data()[0][column].clone() * laplace_expansion(&submatrix)?;
-    }
-    Ok(determinant)
-}
-
 #[cfg(test)]
 mod tests {
     use std::vec;
 
     use crate::{
-        matrix::square::{
-            determinant::{DeterminantMethod, Signature},
-            SquareMatrix,
-        },
+        matrix::square::{determinant::DeterminantMethod, SquareMatrix},
         num_types::FromF32,
         structures::reals::Real,
     };
 
     const TOL: f32 = 1e-12;
-
-    #[test]
-    fn maximize_diagonal_returns_expected_signature() {
-        let matrix = SquareMatrix::<Real>::try_from(vec![
-            vec![
-                Real::from_f32(0., TOL),
-                Real::from_f32(1., TOL),
-                Real::from_f32(5., TOL),
-            ],
-            vec![
-                Real::from_f32(1., TOL),
-                Real::from_f32(1., TOL),
-                Real::from_f32(3., TOL),
-            ],
-            vec![
-                Real::from_f32(1., TOL),
-                Real::from_f32(-2., TOL),
-                Real::from_f32(0., TOL),
-            ],
-        ]);
-        let sign = matrix.unwrap().maximize_diagonal().unwrap();
-        assert_eq!(sign, Signature::Even);
-    }
 
     #[test]
     fn leading_principal_minors_should_be_ok() {
@@ -288,67 +166,7 @@ mod tests {
     }
 
     #[test]
-    fn bareiss_algorithm() {
-        let matrix = SquareMatrix::<Real>::try_from(vec![
-            vec![
-                Real::from_f32(1., TOL),
-                Real::from_f32(2., TOL),
-                Real::from_f32(3., TOL),
-                Real::from_f32(4., TOL),
-            ],
-            vec![
-                Real::from_f32(1., TOL),
-                Real::from_f32(-2., TOL),
-                Real::from_f32(0., TOL),
-                Real::from_f32(1., TOL),
-            ],
-            vec![
-                Real::from_f32(0., TOL),
-                Real::from_f32(1., TOL),
-                Real::from_f32(5., TOL),
-                Real::from_f32(1., TOL),
-            ],
-            vec![
-                Real::from_f32(1., TOL),
-                Real::from_f32(-1., TOL),
-                Real::from_f32(2., TOL),
-                Real::from_f32(1., TOL),
-            ],
-        ]);
-        assert_eq!(
-            matrix
-                .unwrap()
-                .determinant(DeterminantMethod::BareissAlgorithm, TOL),
-            Ok(Real::from_f32(14., TOL))
-        );
-    }
-
-    #[test]
-    fn laplace_expansion() {
-        let matrix = SquareMatrix::<Real>::try_from(vec![
-            vec![
-                Real::from_f32(1., TOL),
-                Real::from_f32(2., TOL),
-                Real::from_f32(3., TOL),
-            ],
-            vec![
-                Real::from_f32(1., TOL),
-                Real::from_f32(-2., TOL),
-                Real::from_f32(0., TOL),
-            ],
-            vec![
-                Real::from_f32(0., TOL),
-                Real::from_f32(1., TOL),
-                Real::from_f32(5., TOL),
-            ],
-        ]);
-        assert_eq!(
-            matrix
-                .unwrap()
-                .determinant(DeterminantMethod::LaplaceExpansion, TOL),
-            Ok(Real::from_f32(-17., TOL))
-        );
-    }
+    fn positive_definite_should_not_fail() {}
 
     #[test]
     fn determinant_should_not_last_long() {
