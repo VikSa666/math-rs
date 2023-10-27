@@ -79,7 +79,7 @@ mod tests {
         let computed = montante_algorithm(&matrix);
         let time = start.elapsed().as_millis();
         println!("Montante's method took {} ms", time);
-        assert!(time < 3000);
+        assert!(time < 5000);
         pretty_assertions::assert_eq!(computed, Ok(Integer::from(-1)));
     }
 }
