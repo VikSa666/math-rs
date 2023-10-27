@@ -7,7 +7,7 @@ use super::{AsMatrix, MatrixError};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Matrix<R: Ring> {
-    data: Vec<Vec<R>>,
+    pub data: Vec<Vec<R>>,
 }
 
 impl<R: Ring> TryFrom<Vec<Vec<R>>> for Matrix<R> {
