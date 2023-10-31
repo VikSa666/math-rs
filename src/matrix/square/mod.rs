@@ -1,5 +1,6 @@
 pub mod determinant;
 pub mod equality;
+mod lu;
 pub mod parser;
 
 use crate::structures::Ring;
