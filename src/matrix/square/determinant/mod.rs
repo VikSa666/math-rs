@@ -7,6 +7,8 @@ use super::SquareMatrix;
 
 mod bareiss;
 use bareiss::bareiss_algorithm;
+mod gaussian;
+use gaussian::gaussian_elimination_determinant;
 mod montante;
 use montante::montante_algorithm;
 
@@ -14,6 +16,7 @@ pub enum DeterminantMethod {
     TriangleRule,
     BareissAlgorithm,
     LaplaceExpansion,
+    GaussianElimination,
     Optimize,
 }
 
@@ -60,6 +63,9 @@ impl<R: Ring + PartialOrd> SquareMatrix<R> {
             DeterminantMethod::TriangleRule => triangle_rule(self),
             DeterminantMethod::BareissAlgorithm => bareiss_algorithm(self, tolerance),
             DeterminantMethod::LaplaceExpansion => montante_algorithm(self),
+            DeterminantMethod::GaussianElimination => {
+                gaussian_elimination_determinant(self, tolerance)
+            }
             DeterminantMethod::Optimize => best_determinant_method(self, tolerance),
         }
     }

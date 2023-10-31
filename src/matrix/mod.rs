@@ -33,12 +33,32 @@ where
         if row1 >= self.rows() || row2 >= self.rows() {
             return Err(MatrixError::InvalidNumberOfRows);
         }
-        let data = self.data_mut();
-
-        data.swap(row1, row2);
+        self.data_mut().swap(row1, row2);
         Ok(())
     }
 
+    /// Returns a brand new matrix resulting from gaussian elimination.
+    ///
+    /// ## Parameters
+    /// - `tolerance`: The tolerance used to determine if a number is zero.
+    ///
+    /// ## Example
+    ///
+    /// If you have the matrix
+    /// ```txt
+    ///     1   2   3
+    /// M = 4   5   6
+    ///     7   8   9
+    /// ```
+    /// and tolerance is 1e-6, then the result will be the matrix
+    /// ```txt
+    ///     1   2   3
+    /// M'= 0   0   0
+    ///     0   0   0
+    /// ```
+    ///
+    /// ## Complexity
+    /// The complexity of this algorithm is _O(n^3)_.
     fn gaussian_elimination(&self, tolerance: f32) -> Result<Self, MatrixError> {
         let mut matrix = self.clone();
         let mut i = 0;
@@ -46,21 +66,21 @@ where
         while i < matrix.rows() && j < matrix.columns() {
             let mut max_row = i;
             for k in i + 1..matrix.rows() {
-                if matrix.get(k, j)?.abs_value() > matrix.get(max_row, j)?.abs_value() {
+                if matrix.data()[k][j].abs_value() > matrix.data()[max_row][j].abs_value() {
                     max_row = k;
                 }
             }
-            if matrix.get(max_row, j)?.is_zero(tolerance) {
+            if matrix.data()[max_row][j].is_zero(tolerance) {
                 j += 1;
             } else {
                 matrix.swap_rows(i, max_row)?;
                 for k in i + 1..matrix.rows() {
-                    let factor = matrix.get(k, j)?.clone() / matrix.get(i, j)?.clone();
-                    matrix.set(k, j, R::zero())?;
+                    let factor = matrix.data()[k][j].clone() / matrix.data()[i][j].clone();
+                    matrix.data_mut()[k][j] = R::zero();
                     for l in j + 1..matrix.columns() {
-                        let new_value =
-                            matrix.get(k, l)?.clone() - matrix.get(i, l)?.clone() * factor.clone();
-                        matrix.set(k, l, new_value)?;
+                        let new_value = matrix.data()[k][l].clone()
+                            - matrix.data()[i][l].clone() * factor.clone();
+                        matrix.data_mut()[k][l] = new_value;
                     }
                 }
                 i += 1;
