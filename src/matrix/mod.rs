@@ -1,6 +1,6 @@
 pub mod display;
 mod error;
-use std::{fmt::Display, str::FromStr};
+use std::{fmt::Display, ops::IndexMut, str::FromStr};
 
 pub use error::MatrixError;
 
@@ -9,7 +9,8 @@ use crate::structures::Ring;
 pub mod generic;
 pub mod square;
 
-pub trait AsMatrix<R>: TryFrom<Vec<Vec<R>>> + Default + FromStr + Display + Clone
+pub trait AsMatrix<R>:
+    TryFrom<Vec<Vec<R>>> + Default + FromStr + Display + Clone + IndexMut<(usize, usize), Output = R>
 where
     R: Ring + PartialOrd,
 {

@@ -2,6 +2,8 @@ pub mod determinant;
 pub mod equality;
 pub mod parser;
 
+use std::ops::{Index, IndexMut};
+
 use crate::structures::Ring;
 
 use super::{error::MatrixError, AsMatrix};
@@ -187,6 +189,20 @@ impl<R: Ring> std::fmt::Display for SquareMatrix<R> {
             output.push_str("\n")
         }
         write!(f, "{}", output)
+    }
+}
+
+impl<R: Ring> Index<(usize, usize)> for SquareMatrix<R> {
+    type Output = R;
+
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        &self.data[index.0][index.1]
+    }
+}
+
+impl<R: Ring> IndexMut<(usize, usize)> for SquareMatrix<R> {
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+        &mut self.data[index.0][index.1]
     }
 }
 
