@@ -51,6 +51,7 @@ where
         self.dimension
     }
 
+    /// Checks if any element of the diagonal is zero
     pub fn diagonal_is_zero(&self, tolerance: f32) -> bool {
         for row in 0..self.dimension() {
             if self.data[row][row].is_zero(tolerance) {
@@ -180,7 +181,10 @@ impl<R: Ring> std::fmt::Display for SquareMatrix<R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut output = String::new();
         for row in self.data.iter() {
-            output.push_str(&format!("{:?}\n", row));
+            for element in row.iter() {
+                output.push_str(&format!("{} ", element));
+            }
+            output.push_str("\n")
         }
         write!(f, "{}", output)
     }

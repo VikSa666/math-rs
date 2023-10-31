@@ -3,7 +3,7 @@ use math_rs::matrix::square::{determinant::DeterminantMethod, SquareMatrix};
 
 fn bench_determinants(c: &mut Criterion) {
     let mut group = c.benchmark_group("Calculate determinant");
-    let huge_matrix = SquareMatrix::from_fn(10000, |i, j| {
+    let huge_matrix = SquareMatrix::from_fn(10, |i, j| {
         if (i as isize - j as isize).abs() < 3 {
             1
         } else {

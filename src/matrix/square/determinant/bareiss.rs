@@ -12,11 +12,11 @@ pub(super) fn bareiss_algorithm<R: Ring + PartialOrd>(
 ) -> Result<R, MatrixError> {
     let mut matrix_cloned = matrix.clone();
 
-    if matrix_cloned.diagonal_is_zero(tolerance) {
-        return Err(MatrixError::MatrixError(
-            "Matrix has zero elements in diagonal".to_string(),
-        ));
-    }
+    // if matrix_cloned.diagonal_is_zero(tolerance) {
+    //     return Err(MatrixError::MatrixError(
+    //         "Matrix has zero elements in diagonal".to_string(),
+    //     ));
+    // }
     let dimension = matrix.dimension();
     let mut sign = Signature::Even;
 
@@ -30,12 +30,17 @@ pub(super) fn bareiss_algorithm<R: Ring + PartialOrd>(
         for i in k..dimension {
             if diagonal_element.is_zero(tolerance) {
                 matrix_cloned.swap_rows(i, k - 1)?;
-                println!("{matrix_cloned}");
                 sign.change();
                 diagonal_element = matrix_cloned.data()[k - 1][k - 1].to_owned();
             } else {
                 break;
             }
+        }
+
+        // If after looking for possible non-zero elements, the diagonal_element is still
+        // zero, this means that the matrix is singular.
+        if diagonal_element.is_zero(tolerance) {
+            return Ok(R::zero());
         }
 
         for i in k + 1..dimension {
@@ -61,7 +66,7 @@ mod tests {
     use crate::{
         matrix::square::{determinant::bareiss::bareiss_algorithm, SquareMatrix},
         num_types::FromF32,
-        structures::reals::Real,
+        structures::{integers::Integer, reals::Real},
     };
 
     const TOL: f32 = 1e-12;
@@ -98,5 +103,22 @@ mod tests {
             bareiss_algorithm(&matrix, TOL),
             Ok(Real::from_f32(14., TOL))
         );
+    }
+
+    #[test]
+    fn large_bareiss_algorithm_should_not_take_long() {
+        let matrix = SquareMatrix::from_fn(100, |i, j| {
+            if i == j {
+                Integer::from(1)
+            } else {
+                Integer::from(0)
+            }
+        });
+        let start = std::time::Instant::now();
+        let result = bareiss_algorithm(&matrix, TOL);
+        let time = start.elapsed().as_millis();
+        println!("Time elapsed in bareiss_algorithm: {} ms", time);
+        assert!(time < 100);
+        assert_eq!(result, Ok(Integer::from(1)));
     }
 }
