@@ -35,8 +35,8 @@ impl<R: Ring + PartialOrd> Add for Matrix<R> {
         let mut result = self.clone();
         for (row, row_elements) in self.data.iter().enumerate() {
             for (column, element) in row_elements.iter().enumerate() {
-                let rhs_element = rhs.get(row, column)?;
-                result.set(row, column, element.clone() + rhs_element.clone())?;
+                let rhs_element = &rhs[(row, column)];
+                result[(row, column)] = element.clone() + rhs_element.clone();
             }
         }
         Ok(result)
@@ -62,7 +62,7 @@ impl<R: Ring + PartialOrd> Neg for Matrix<R> {
         let mut result = self.clone();
         for (row, row_elements) in self.data.iter().enumerate() {
             for (column, element) in row_elements.iter().enumerate() {
-                result.set(row, column, -element.clone())?;
+                result[(row, column)] = -element.clone();
             }
         }
         Ok(result)
@@ -79,8 +79,8 @@ impl<R: Ring + PartialOrd> Sub for Matrix<R> {
         let mut result = self.clone();
         for (row, row_elements) in self.data.iter().enumerate() {
             for (column, element) in row_elements.iter().enumerate() {
-                let rhs_element = rhs.get(row, column)?;
-                result.set(row, column, element.clone() - rhs_element.clone())?;
+                let rhs_element = &rhs[(row, column)];
+                result[(row, column)] = element.clone() - rhs_element.clone();
             }
         }
         Ok(result)
@@ -99,9 +99,9 @@ impl<R: Ring + PartialOrd> std::ops::Mul for Matrix<R> {
             for column in 0..rhs.columns() {
                 let mut sum = R::zero();
                 for i in 0..self.columns() {
-                    sum = sum + self.get(row, i)?.to_owned() * rhs.get(i, column)?.to_owned();
+                    sum = sum + self[(row, i)].to_owned() * rhs[(i, column)].to_owned();
                 }
-                result.set(row, column, sum)?;
+                result[(row, column)] = sum;
             }
         }
         Ok(result)

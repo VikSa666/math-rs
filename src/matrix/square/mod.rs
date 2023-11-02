@@ -2,6 +2,8 @@ pub mod determinant;
 pub mod equality;
 pub mod parser;
 
+use std::ops::{Index, IndexMut};
+
 use crate::structures::Ring;
 
 use super::{error::MatrixError, AsMatrix};
@@ -39,9 +41,9 @@ where
     /// ```
     pub fn from_fn(dimension: usize, f: fn(i: usize, j: usize) -> R) -> Self {
         let mut data = vec![vec![R::zero(); dimension]; dimension];
-        for i in 0..dimension {
-            for j in 0..dimension {
-                data[i][j] = f(i, j)
+        for (i, row) in data.iter_mut().enumerate().take(dimension) {
+            for (j, element) in row.iter_mut().enumerate().take(dimension) {
+                *element = f(i, j)
             }
         }
         Self::new(dimension, data)
@@ -184,9 +186,23 @@ impl<R: Ring> std::fmt::Display for SquareMatrix<R> {
             for element in row.iter() {
                 output.push_str(&format!("{} ", element));
             }
-            output.push_str("\n")
+            output.push('\n')
         }
         write!(f, "{}", output)
+    }
+}
+
+impl<R: Ring> Index<(usize, usize)> for SquareMatrix<R> {
+    type Output = R;
+
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        &self.data[index.0][index.1]
+    }
+}
+
+impl<R: Ring> IndexMut<(usize, usize)> for SquareMatrix<R> {
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+        &mut self.data[index.0][index.1]
     }
 }
 

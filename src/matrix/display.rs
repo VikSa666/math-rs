@@ -9,7 +9,7 @@ impl<R: Ring + PartialOrd> std::fmt::Display for Matrix<R> {
             for element in row.iter() {
                 result.push_str(&format!("{} ", element));
             }
-            result.push_str("\n");
+            result.push('\n');
         }
         write!(f, "{}", result)
     }

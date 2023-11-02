@@ -1,6 +1,6 @@
 pub mod display;
 mod error;
-use std::{fmt::Display, str::FromStr};
+use std::{fmt::Display, ops::IndexMut, str::FromStr};
 
 pub use error::MatrixError;
 
@@ -9,7 +9,8 @@ use crate::structures::Ring;
 pub mod generic;
 pub mod square;
 
-pub trait AsMatrix<R>: TryFrom<Vec<Vec<R>>> + Default + FromStr + Display + Clone
+pub trait AsMatrix<R>:
+    TryFrom<Vec<Vec<R>>> + Default + FromStr + Display + Clone + IndexMut<(usize, usize), Output = R>
 where
     R: Ring + PartialOrd,
 {
@@ -254,8 +255,8 @@ mod tests {
 
     const TOLERANCE: f32 = 1e-12;
 
-    fn perform_test<'a, R: Ring + PartialOrd>(
-        test: TestCase<'a>,
+    fn perform_test<R: Ring + PartialOrd>(
+        test: TestCase<'_>,
         builder: fn(&str) -> Result<Matrix<R>, MatrixError>,
     ) {
         let matrix = builder(test.matrix).unwrap();

@@ -183,7 +183,7 @@ pub trait Ring:
 
     /// Will return the **additive inverse** of the current element.
     fn inverse_addition(&self) -> Self {
-        Self::inverse(&self)
+        Self::inverse(self)
     }
 }
 

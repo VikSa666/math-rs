@@ -1,6 +1,8 @@
 pub mod ops;
 pub mod parser;
 
+use std::ops::{Index, IndexMut};
+
 use crate::structures::Ring;
 
 use super::{AsMatrix, MatrixError};
@@ -29,6 +31,20 @@ impl<R: Ring> Default for Matrix<R> {
         Self {
             data: Default::default(),
         }
+    }
+}
+
+impl<R: Ring> Index<(usize, usize)> for Matrix<R> {
+    type Output = R;
+
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        &self.data[index.0][index.1]
+    }
+}
+
+impl<R: Ring> IndexMut<(usize, usize)> for Matrix<R> {
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+        &mut self.data[index.0][index.1]
     }
 }
 

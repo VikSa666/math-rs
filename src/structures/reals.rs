@@ -182,8 +182,8 @@ mod test {
 
     #[test]
     fn equals_with_tolerance() {
-        let x = Real::new(1.23456789);
-        let y = Real::new(1.23411111);
+        let x = Real::new(1.234_567_9);
+        let y = Real::new(1.234_111_1);
         [1e-1, 1e-2, 1e-3].iter().for_each(|tolerance| {
             assert!(x.equals(&y, *tolerance));
         });
@@ -194,8 +194,8 @@ mod test {
 
     #[test]
     fn operations() {
-        let x = Real::new(1.23456789);
-        let y = Real::new(1.23411111);
+        let x = Real::new(1.234_567_9);
+        let y = Real::new(1.234_111_1);
         let sum = x + y;
         let sub = x - y;
         let mul = x * y;
