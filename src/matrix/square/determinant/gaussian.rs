@@ -13,7 +13,7 @@ pub(super) fn gaussian_elimination_determinant<R: Ring + PartialOrd>(
     let reduced = matrix.gaussian_elimination(tolerance)?;
     let mut determinant = R::one();
     for i in 0..reduced.dimension() {
-        determinant = determinant * reduced.data()[i][i].to_owned();
+        determinant = determinant * reduced[(i, i)].to_owned();
     }
     Ok(determinant)
 }
