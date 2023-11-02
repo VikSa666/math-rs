@@ -7,7 +7,7 @@ use super::{MatrixError, SquareMatrix};
 impl<R: Ring> SquareMatrix<R> {
     fn parse(input: &str) -> Result<Self, MatrixError> {
         let mut matrix = vec![];
-        let processed_input = input.trim().split_whitespace().collect::<String>();
+        let processed_input = input.split_whitespace().collect::<String>();
         let inner = processed_input
             .trim_start_matches('{')
             .trim_end_matches('}')
@@ -17,9 +17,7 @@ impl<R: Ring> SquareMatrix<R> {
                 .split(',')
                 .map(|s| -> Result<R, MatrixError> {
                     R::from_str(s).map_err(|_| {
-                        MatrixError::MatrixError(format!(
-                            "Could not parse matrix due to parsing error",
-                        ))
+                        MatrixError::MatrixError("Could not parse matrix due to parsing error".to_string())
                     })
                 })
                 .collect::<Result<Vec<R>, MatrixError>>()?;

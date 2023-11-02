@@ -255,8 +255,8 @@ mod tests {
 
     const TOLERANCE: f32 = 1e-12;
 
-    fn perform_test<'a, R: Ring + PartialOrd>(
-        test: TestCase<'a>,
+    fn perform_test<R: Ring + PartialOrd>(
+        test: TestCase<'_>,
         builder: fn(&str) -> Result<Matrix<R>, MatrixError>,
     ) {
         let matrix = builder(test.matrix).unwrap();

@@ -7,7 +7,7 @@ use crate::{
     matrix_reals,
     structures::reals::Real,
 };
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 /// Initialization function that automatically gets called when the module is loaded in WASM.
 #[wasm_bindgen(start)]
@@ -19,6 +19,12 @@ pub fn start() -> Result<(), JsValue> {
 #[wasm_bindgen]
 pub struct MatrixReal {
     inner: Matrix<Real>,
+}
+
+impl Display for MatrixReal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.inner)
+    }
 }
 
 #[wasm_bindgen]
@@ -64,7 +70,7 @@ impl MatrixReal {
 
     pub fn get(&self, row: usize, column: usize) -> Result<f32, JsValue> {
         let result = self.inner.get(row + 1, column + 1)?;
-        Ok(result.value().clone())
+        Ok(result.value())
     }
 
     pub fn checked_sum(matrix_a: MatrixReal, matrix_b: MatrixReal) -> Result<MatrixReal, JsValue> {
@@ -88,7 +94,21 @@ impl MatrixReal {
         })
     }
 
-    pub fn to_string(&self) -> String {
+    /// Method "to_string" but cannot name it like this because Clippy will complain:
+    /// ```text
+    /// warning: implementation of inherent method `to_string(&self) -> String` for type `ffi::wasm::MatrixReal`
+    ///   --> src/ffi/wasm/mod.rs:91:5
+    ///   |
+    /// 91| /     pub fn to_string(&self) -> String {
+    /// 92| |         self.inner.to_string()
+    /// 93| |     }
+    ///   | |_____^
+    ///   |
+    ///   = help: implement trait `Display` for type `ffi::wasm::MatrixReal` instead
+    ///   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#inherent_to_string
+    ///   = note: `#[warn(clippy::inherent_to_string)]` on by default
+    /// ```
+    pub fn convert_to_string(&self) -> String {
         self.inner.to_string()
     }
 

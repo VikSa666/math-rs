@@ -41,9 +41,9 @@ where
     /// ```
     pub fn from_fn(dimension: usize, f: fn(i: usize, j: usize) -> R) -> Self {
         let mut data = vec![vec![R::zero(); dimension]; dimension];
-        for i in 0..dimension {
-            for j in 0..dimension {
-                data[i][j] = f(i, j)
+        for (i, row) in data.iter_mut().enumerate().take(dimension) {
+            for (j, element) in row.iter_mut().enumerate().take(dimension) {
+                *element = f(i, j)
             }
         }
         Self::new(dimension, data)
@@ -186,7 +186,7 @@ impl<R: Ring> std::fmt::Display for SquareMatrix<R> {
             for element in row.iter() {
                 output.push_str(&format!("{} ", element));
             }
-            output.push_str("\n")
+            output.push('\n')
         }
         write!(f, "{}", output)
     }

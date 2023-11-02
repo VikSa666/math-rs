@@ -299,9 +299,9 @@ mod test {
         let z_2 = Complex::from((1., -4.));
         let z_3 = Complex::from((-1., 4.));
         let z_4 = Complex::from((-1., 0.));
-        assert!((z_1.modulus().value() - 4.123105625617661).abs() < TOL);
-        assert!((z_2.modulus().value() - 4.123105625617661).abs() < TOL);
-        assert!((z_3.modulus().value() - 4.123105625617661).abs() < TOL);
+        assert!((z_1.modulus().value() - 4.123_105_5).abs() < TOL);
+        assert!((z_2.modulus().value() - 4.123_105_5).abs() < TOL);
+        assert!((z_3.modulus().value() - 4.123_105_5).abs() < TOL);
         assert!((z_4.modulus().value() - 1.).abs() < TOL);
     }
 
