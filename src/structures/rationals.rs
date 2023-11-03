@@ -386,7 +386,7 @@ mod tests {
             },
             Test {
                 name: "medium random decimals",
-                input: 1.23456789,
+                input: 1.234_567_9,
                 epsilon: 1e-4,
                 expected: Rational::<i128>::new(
                     Integer::<i128>::new(2469),
@@ -395,7 +395,7 @@ mod tests {
             },
             Test {
                 name: "medium random decimals",
-                input: 1.23456789,
+                input: 1.234_567_9,
                 epsilon: 1e-12,
                 expected: Rational::<i128>::new(
                     Integer::<i128>::new(5796311),

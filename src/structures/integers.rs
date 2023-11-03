@@ -153,7 +153,7 @@ where
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self::new(R::from_str(s).map_err(|_| {
-            StructureError::ParseError(format!("Error parsing integer"))
+            StructureError::ParseError("Error parsing integer".to_string())
         })?))
     }
 }

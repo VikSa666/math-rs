@@ -11,7 +11,7 @@ fn bench_determinants(c: &mut Criterion) {
         }
     });
     group.bench_function(
-        BenchmarkId::new(format!("Determinant using Bareiss Algorithm"), 0),
+        BenchmarkId::new("Determinant using Bareiss Algorithm".to_string(), 0),
         |b| b.iter(|| huge_matrix.determinant(DeterminantMethod::BareissAlgorithm, 1e-10)),
     );
 

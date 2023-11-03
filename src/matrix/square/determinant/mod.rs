@@ -1,7 +1,4 @@
-use crate::{
-    matrix::{error::MatrixError, AsMatrix},
-    structures::Ring,
-};
+use crate::{matrix::error::MatrixError, structures::Ring};
 
 use super::SquareMatrix;
 
@@ -79,7 +76,7 @@ impl<R: Ring + PartialOrd> SquareMatrix<R> {
             SquareMatrix::new(dimension, vec![vec![R::zero(); dimension]; dimension]);
         for i in 0..dimension {
             for j in 0..dimension {
-                submatrix.data_mut()[i][j] = self.data()[i][j].clone();
+                submatrix[(i, j)] = self[(i, j)].clone();
             }
         }
         Ok(submatrix)
@@ -101,27 +98,27 @@ fn best_determinant_method<R: Ring + PartialOrd>(
 
 fn triangle_rule<R: Ring + PartialOrd>(matrix: &SquareMatrix<R>) -> Result<R, MatrixError> {
     match matrix.dimension() {
-        1 => matrix.get(0, 0).cloned(),
+        1 => Ok(matrix[(0, 0)].to_owned()),
         2 => {
-            let a = matrix.get(0, 0)?.clone();
-            let b = matrix.get(0, 1)?.clone();
-            let c = matrix.get(1, 0)?.clone();
-            let d = matrix.get(1, 1)?.clone();
+            let a = matrix[(0, 0)].to_owned();
+            let b = matrix[(0, 1)].to_owned();
+            let c = matrix[(1, 0)].to_owned();
+            let d = matrix[(1, 1)].to_owned();
             Ok(a * d - b * c)
         }
         3 => {
-            let a = matrix.get(0, 0)?.clone();
-            let b = matrix.get(0, 1)?.clone();
-            let c = matrix.get(0, 2)?.clone();
-            let d = matrix.get(1, 0)?.clone();
-            let e = matrix.get(1, 1)?.clone();
-            let f = matrix.get(1, 2)?.clone();
-            let g = matrix.get(2, 0)?.clone();
-            let h = matrix.get(2, 1)?.clone();
-            let i = matrix.get(2, 2)?.clone();
-            Ok(a.clone() * e.clone() * i.clone()
-                + b.clone() * f.clone() * g.clone()
-                + c.clone() * d.clone() * h.clone()
+            let a = matrix[(0, 0)].to_owned();
+            let b = matrix[(0, 1)].to_owned();
+            let c = matrix[(0, 2)].to_owned();
+            let d = matrix[(1, 0)].to_owned();
+            let e = matrix[(1, 1)].to_owned();
+            let f = matrix[(1, 2)].to_owned();
+            let g = matrix[(2, 0)].to_owned();
+            let h = matrix[(2, 1)].to_owned();
+            let i = matrix[(2, 2)].to_owned();
+            Ok(a.to_owned() * e.to_owned() * i.to_owned()
+                + b.to_owned() * f.to_owned() * g.to_owned()
+                + c.to_owned() * d.to_owned() * h.to_owned()
                 - c * e * g
                 - b * d * i
                 - a * f * h)
@@ -134,11 +131,7 @@ fn triangle_rule<R: Ring + PartialOrd>(matrix: &SquareMatrix<R>) -> Result<R, Ma
 mod tests {
     use std::vec;
 
-    use crate::{
-        matrix::square::{determinant::DeterminantMethod, SquareMatrix},
-        num_types::FromF32,
-        structures::reals::Real,
-    };
+    use crate::{matrix::square::SquareMatrix, num_types::FromF32, structures::reals::Real};
 
     const TOL: f32 = 1e-12;
 
@@ -172,27 +165,24 @@ mod tests {
         );
     }
 
-    #[test]
-    fn positive_definite_should_not_fail() {}
+    // #[test]
+    // fn determinant_should_not_last_long() {
+    //     let huge_matrix = SquareMatrix::from_fn(10, |i, j| {
+    //         if (i as isize - j as isize).abs() < 3 {
+    //             1
+    //         } else {
+    //             0
+    //         }
+    //     });
 
-    #[test]
-    fn determinant_should_not_last_long() {
-        let huge_matrix = SquareMatrix::from_fn(10, |i, j| {
-            if (i as isize - j as isize).abs() < 3 {
-                1
-            } else {
-                0
-            }
-        });
+    //     println!("Matrix built!");
 
-        println!("Matrix built!");
-
-        let start = std::time::Instant::now();
-        let determinant = huge_matrix
-            .determinant(DeterminantMethod::LaplaceExpansion, 1E-10)
-            .unwrap();
-        let end = std::time::Instant::now();
-        println!("time = {:?}", end - start);
-        println!("determinant = {}", determinant)
-    }
+    //     let start = std::time::Instant::now();
+    //     let determinant = huge_matrix
+    //         .determinant(DeterminantMethod::LaplaceExpansion, 1E-10)
+    //         .unwrap();
+    //     let end = std::time::Instant::now();
+    //     println!("time = {:?}", end - start);
+    //     println!("determinant = {}", determinant)
+    // }
 }

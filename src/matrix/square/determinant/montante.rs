@@ -1,5 +1,5 @@
 use crate::{
-    matrix::{square::SquareMatrix, AsMatrix, MatrixError},
+    matrix::{square::SquareMatrix, MatrixError},
     structures::Ring,
 };
 
@@ -29,7 +29,7 @@ pub(super) fn montante_algorithm<R: Ring + PartialOrd>(
     matrix: &SquareMatrix<R>,
 ) -> Result<R, MatrixError> {
     if matrix.dimension() == 1 {
-        return Ok(matrix.data()[0][0].clone());
+        return Ok(matrix[(0, 0)].clone());
     }
     let mut determinant = R::zero();
     let mut sign = Signature::Even;
@@ -37,9 +37,7 @@ pub(super) fn montante_algorithm<R: Ring + PartialOrd>(
         sign.change();
         let minor = matrix.minor(0, column)?;
         determinant = determinant
-            + sign.as_number::<R>()
-                * matrix.data()[0][column].clone()
-                * montante_algorithm(&minor)?;
+            + sign.as_number::<R>() * matrix[(0, column)].clone() * montante_algorithm(&minor)?;
     }
     Ok(determinant)
 }
