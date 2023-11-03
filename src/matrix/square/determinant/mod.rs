@@ -6,6 +6,7 @@ use crate::{
 use super::SquareMatrix;
 
 mod bareiss;
+pub mod ring;
 use bareiss::bareiss_algorithm;
 mod gaussian;
 use gaussian::gaussian_elimination_determinant;
