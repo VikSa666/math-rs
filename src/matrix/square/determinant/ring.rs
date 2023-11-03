@@ -16,7 +16,7 @@ impl<R: Ring> Add for SquareMatrix<R> {
         let mut result = self.clone();
         for (row, row_elements) in self.data.iter().enumerate() {
             for (column, element) in row_elements.iter().enumerate() {
-                let rhs_element = rhs[(row, column)];
+                let rhs_element = &rhs[(row, column)];
                 result[(row, column)] = element.clone() + rhs_element.clone();
             }
         }
