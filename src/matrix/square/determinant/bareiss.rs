@@ -22,7 +22,7 @@ pub(super) fn bareiss_algorithm<R: Ring + PartialOrd>(
 
     for k in 0..dimension - 1 {
         let mut diagonal_element = if k.checked_sub(1).is_none() {
-            R::one()
+            R::one(0, 0)
         } else {
             matrix_cloned[(k - 1, k - 1)].to_owned()
         };
@@ -40,7 +40,7 @@ pub(super) fn bareiss_algorithm<R: Ring + PartialOrd>(
         // If after looking for possible non-zero elements, the diagonal_element is still
         // zero, this means that the matrix is singular.
         if diagonal_element.is_zero(tolerance) {
-            return Ok(R::zero());
+            return Ok(R::zero(0, 0));
         }
 
         for i in k + 1..dimension {

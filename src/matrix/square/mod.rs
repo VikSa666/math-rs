@@ -41,7 +41,7 @@ where
     /// 2 3 4
     /// ```
     pub fn from_fn(dimension: usize, f: fn(i: usize, j: usize) -> R) -> Self {
-        let mut data = vec![vec![R::zero(); dimension]; dimension];
+        let mut data = vec![vec![R::zero(0, 0); dimension]; dimension];
         for (i, row) in data.iter_mut().enumerate().take(dimension) {
             for (j, element) in row.iter_mut().enumerate().take(dimension) {
                 *element = f(i, j)

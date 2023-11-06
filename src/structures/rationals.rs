@@ -27,7 +27,7 @@ macro_rules! impl_rational_from_primitives {
     ($($t:ty),*) => {
         $(impl From<$t> for Rational<$t> {
             fn from(value: $t) -> Self {
-                Self::new(Integer::new(value), Integer::one())
+                Self::new(Integer::new(value), Integer::one(0,0))
             }
         })*
     };
@@ -103,8 +103,8 @@ where
 
     fn rem(self, _: Self) -> Self::Output {
         Self {
-            numerator: Integer::zero(),
-            denominator: Integer::zero(),
+            numerator: Integer::zero(0, 0),
+            denominator: Integer::zero(0, 0),
         }
         .simplified()
     }
@@ -140,12 +140,12 @@ impl<R> Zero for Rational<R>
 where
     R: Ring + PartialOrd,
 {
-    fn zero() -> Self {
-        Self::new(Integer::zero(), Integer::one())
+    fn zero(rows: usize, cols: usize) -> Self {
+        Self::new(Integer::zero(0, 0), Integer::one(rows, cols))
     }
 
     fn is_zero(&self, _: f32) -> bool {
-        self.equals(&Self::zero(), 0.)
+        self.equals(&Self::zero(0, 0), 0.)
     }
 }
 
@@ -153,12 +153,12 @@ impl<R> One for Rational<R>
 where
     R: Ring + PartialOrd,
 {
-    fn one() -> Self {
-        Self::new(Integer::one(), Integer::one())
+    fn one(rows: usize, cols: usize) -> Self {
+        Self::new(Integer::one(rows, cols), Integer::one(rows, cols))
     }
 
     fn is_one(&self, _: f32) -> bool {
-        self.equals(&Self::one(), 0.)
+        self.equals(&Self::one(0, 0), 0.)
     }
 }
 
@@ -171,7 +171,7 @@ where
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if !s.contains('/') {
             if let Ok(integer) = s.parse::<Integer<R>>() {
-                return Ok(Self::new(integer, Integer::one()));
+                return Ok(Self::new(integer, Integer::one(0, 0)));
             }
 
             return Ok(Self::from_f32(
@@ -230,7 +230,7 @@ where
         let int_part = R::from_f32(value, tolerance);
         let decimal: f32 = value - (int_part.as_f32());
 
-        let int_part_fraction = Rational::<R>::new(Integer::new(int_part), Integer::one());
+        let int_part_fraction = Rational::<R>::new(Integer::new(int_part), Integer::one(0, 0));
         let decimal_fraction = Rational::<R>::new(
             Integer::<R>::new(R::from_f32(decimal * (1. / tolerance), tolerance)),
             Integer::<R>::new(R::from_f32(1. / tolerance, tolerance)),
@@ -260,7 +260,7 @@ where
     R: Ring + PartialOrd + FromF32 + AsF32,
 {
     fn identity() -> Self {
-        Self::new(Integer::zero(), Integer::one())
+        Self::new(Integer::zero(0, 0), Integer::one(0, 0))
     }
 
     fn inverse(&self) -> Self {

@@ -1,4 +1,4 @@
-use crate::{matrix::error::MatrixError, structures::Ring};
+use crate::{identities::Zero, matrix::error::MatrixError, structures::Ring};
 
 use super::SquareMatrix;
 
@@ -45,8 +45,8 @@ impl Signature {
 
     pub fn as_number<R: Ring>(&self) -> R {
         match self {
-            Signature::Even => R::one(),
-            Signature::Odd => -R::one(),
+            Signature::Even => R::one(0, 0),
+            Signature::Odd => -R::one(0, 0),
         }
     }
 }
@@ -72,8 +72,7 @@ impl<R: Ring + PartialOrd> SquareMatrix<R> {
         if dimension > self.dimension() {
             return Err(MatrixError::InvalidDimension(dimension));
         }
-        let mut submatrix =
-            SquareMatrix::new(dimension, vec![vec![R::zero(); dimension]; dimension]);
+        let mut submatrix = SquareMatrix::zero(dimension, dimension);
         for i in 0..dimension {
             for j in 0..dimension {
                 submatrix[(i, j)] = self[(i, j)].clone();

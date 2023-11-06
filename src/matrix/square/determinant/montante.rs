@@ -31,7 +31,7 @@ pub(super) fn montante_algorithm<R: Ring + PartialOrd>(
     if matrix.dimension() == 1 {
         return Ok(matrix[(0, 0)].clone());
     }
-    let mut determinant = R::zero();
+    let mut determinant = R::zero(0, 0);
     let mut sign = Signature::Even;
     for column in 0..matrix.dimension() {
         sign.change();

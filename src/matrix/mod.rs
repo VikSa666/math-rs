@@ -77,7 +77,7 @@ where
                 matrix.swap_rows(i, max_row)?;
                 for k in i + 1..matrix.rows() {
                     let factor = matrix.data()[k][j].clone() / matrix.data()[i][j].clone();
-                    matrix.data_mut()[k][j] = R::zero();
+                    matrix.data_mut()[k][j] = R::zero(0, 0);
                     for l in j + 1..matrix.columns() {
                         let new_value = matrix.data()[k][l].clone()
                             - matrix.data()[i][l].clone() * factor.clone();

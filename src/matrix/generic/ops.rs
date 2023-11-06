@@ -44,8 +44,8 @@ impl<R: Ring + PartialOrd> Add for Matrix<R> {
 }
 
 impl<R: Ring + PartialOrd> Zero for Matrix<R> {
-    fn zero() -> Self {
-        Matrix::<R>::with_capacity(0, 0)
+    fn zero(rows: usize, cols: usize) -> Self {
+        Matrix::<R>::with_capacity(rows as usize, cols)
     }
 
     fn is_zero(&self, tolerance: f32) -> bool {
@@ -94,10 +94,10 @@ impl<R: Ring + PartialOrd> std::ops::Mul for Matrix<R> {
         if self.columns() != rhs.rows() {
             return Err(super::MatrixError::InvalidNumberOfRows);
         }
-        let mut result = Matrix::<R>::with_capacity(self.rows(), rhs.columns());
+        let mut result = Matrix::<R>::zero(self.rows(), rhs.columns());
         for row in 0..self.rows() {
             for column in 0..rhs.columns() {
-                let mut sum = R::zero();
+                let mut sum = R::zero(0, 0);
                 for i in 0..self.columns() {
                     sum = sum + self[(row, i)].to_owned() * rhs[(i, column)].to_owned();
                 }

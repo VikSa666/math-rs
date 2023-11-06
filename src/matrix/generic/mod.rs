@@ -65,7 +65,7 @@ where
         for _ in 0..rows {
             let mut row = Vec::with_capacity(columns);
             for _ in 0..columns {
-                row.push(R::zero());
+                row.push(R::zero(0, 0));
             }
             elements.push(row);
         }
@@ -135,10 +135,13 @@ mod test {
     fn matrix_try_from_should_fail() {
         let matrix = Matrix::<Rational<i32>>::try_from(vec![
             vec![
-                Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
-                Rational::<i32>::new(Integer::<i32>::new(2), Integer::one()),
+                Rational::<i32>::new(Integer::<i32>::new(1), Integer::one(0, 0)),
+                Rational::<i32>::new(Integer::<i32>::new(2), Integer::one(0, 0)),
             ],
-            vec![Rational::<i32>::new(Integer::<i32>::new(3), Integer::one())],
+            vec![Rational::<i32>::new(
+                Integer::<i32>::new(3),
+                Integer::one(0, 0),
+            )],
         ]);
         assert_eq!(matrix.err(), Some(MatrixError::InvalidNumberOfColumns));
     }
@@ -147,24 +150,24 @@ mod test {
     fn rational_matrix_try_from_should_not_fail() {
         let matrix = Matrix::<Rational<i32>>::try_from(vec![
             vec![
-                Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
-                Rational::<i32>::new(Integer::<i32>::new(2), Integer::one()),
+                Rational::<i32>::new(Integer::<i32>::new(1), Integer::one(0, 0)),
+                Rational::<i32>::new(Integer::<i32>::new(2), Integer::one(0, 0)),
             ],
             vec![
-                Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
-                Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
+                Rational::<i32>::new(Integer::<i32>::new(3), Integer::one(0, 0)),
+                Rational::<i32>::new(Integer::<i32>::new(3), Integer::one(0, 0)),
             ],
         ]);
         assert_eq!(
             matrix.unwrap().data,
             vec![
                 vec![
-                    Rational::<i32>::new(Integer::<i32>::new(1), Integer::one()),
-                    Rational::<i32>::new(Integer::<i32>::new(2), Integer::one()),
+                    Rational::<i32>::new(Integer::<i32>::new(1), Integer::one(0, 0)),
+                    Rational::<i32>::new(Integer::<i32>::new(2), Integer::one(0, 0)),
                 ],
                 vec![
-                    Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
-                    Rational::<i32>::new(Integer::<i32>::new(3), Integer::one()),
+                    Rational::<i32>::new(Integer::<i32>::new(3), Integer::one(0, 0)),
+                    Rational::<i32>::new(Integer::<i32>::new(3), Integer::one(0, 0)),
                 ],
             ]
         );

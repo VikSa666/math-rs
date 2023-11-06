@@ -123,8 +123,8 @@ impl<R> Zero for Integer<R>
 where
     R: Ring + PartialOrd,
 {
-    fn zero() -> Self {
-        Self::new(Zero::zero())
+    fn zero(rows: usize, cols: usize) -> Self {
+        Self::new(Zero::zero(rows, cols))
     }
 
     fn is_zero(&self, _: f32) -> bool {
@@ -136,8 +136,8 @@ impl<R> One for Integer<R>
 where
     R: Ring + PartialOrd,
 {
-    fn one() -> Self {
-        Self::new(One::one())
+    fn one(rows: usize, cols: usize) -> Self {
+        Self::new(One::one(rows, cols))
     }
 
     fn is_one(&self, _: f32) -> bool {
@@ -190,7 +190,7 @@ where
     R: Ring + PartialOrd,
 {
     fn identity() -> Self {
-        Self::new(Zero::zero())
+        Self::new(Zero::zero(0, 0))
     }
 
     fn inverse(&self) -> Self {
@@ -264,8 +264,8 @@ mod test {
         let sub = a.sum(&Integer::<i32>::inverse_addition(&b));
         let mul = a.mul(&b);
         pretty_assertions::assert_eq!(sum, Integer::<i32>::new(2));
-        pretty_assertions::assert_eq!(sub, Integer::zero());
-        pretty_assertions::assert_eq!(mul, Integer::one());
+        pretty_assertions::assert_eq!(sub, Integer::zero(0, 0));
+        pretty_assertions::assert_eq!(mul, Integer::one(0, 0));
     }
 
     #[test]

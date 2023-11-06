@@ -1,19 +1,19 @@
 /// Representation of the identity for the [`Add`](std::ops::Add) operation.
 pub trait Zero: Sized + Clone + std::ops::Add {
-    fn zero() -> Self;
+    fn zero(rows: usize, cols: usize) -> Self;
     fn is_zero(&self, tolerance: f32) -> bool;
 }
 
 /// Representation of the identity for the [`Mul`](std::ops::Mul) operation.
 pub trait One: Sized + Clone + std::ops::Mul {
-    fn one() -> Self;
+    fn one(rows: usize, cols: usize) -> Self;
     fn is_one(&self, tolerance: f32) -> bool;
 }
 
 macro_rules! impl_identities_for_primitive {
     ($($t:ty),*) => {
         $(impl Zero for $t {
-            fn zero() -> Self {
+            fn zero(_: usize, _: usize) -> Self {
                 0 as $t
             }
 
@@ -23,7 +23,7 @@ macro_rules! impl_identities_for_primitive {
         }
 
         impl One for $t {
-            fn one() -> Self {
+            fn one(_: usize, _: usize) -> Self {
                 1 as $t
             }
 

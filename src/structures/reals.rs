@@ -46,12 +46,12 @@ impl Add for Real {
 }
 
 impl Zero for Real {
-    fn zero() -> Self {
+    fn zero(_: usize, _: usize) -> Self {
         Self::new(0_f32)
     }
 
     fn is_zero(&self, tolerance: f32) -> bool {
-        self.equals(&Self::zero(), tolerance)
+        self.equals(&Self::zero(0, 0), tolerance)
     }
 }
 
@@ -112,7 +112,7 @@ impl Abs for Real {
 
 impl Group for Real {
     fn identity() -> Self {
-        Self::zero()
+        Self::zero(0, 0)
     }
 
     fn inverse(&self) -> Self {
@@ -133,7 +133,7 @@ impl Mul for Real {
 }
 
 impl One for Real {
-    fn one() -> Self {
+    fn one(_: usize, _: usize) -> Self {
         Self::new(1_f32)
     }
 

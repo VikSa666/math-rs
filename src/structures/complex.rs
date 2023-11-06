@@ -56,10 +56,10 @@ impl Add for Complex {
 }
 
 impl Zero for Complex {
-    fn zero() -> Self {
+    fn zero(_: usize, _: usize) -> Self {
         Self {
-            re: Real::zero(),
-            im: Real::zero(),
+            re: Real::zero(0, 0),
+            im: Real::zero(0, 0),
         }
     }
 
@@ -124,7 +124,7 @@ impl FromF32 for Complex {
     fn from_f32(value: f32, _: f32) -> Self {
         Self {
             re: Real::new(value),
-            im: Real::zero(),
+            im: Real::zero(0, 0),
         }
     }
 }
@@ -142,7 +142,7 @@ impl From<Real> for Complex {
     fn from(value: Real) -> Self {
         Self {
             re: value,
-            im: Real::zero(),
+            im: Real::zero(0, 0),
         }
     }
 }
@@ -157,7 +157,7 @@ impl Abs for Complex {
 
 impl Group for Complex {
     fn identity() -> Self {
-        Self::zero()
+        Self::zero(0, 0)
     }
 
     fn inverse(&self) -> Self {
@@ -170,10 +170,10 @@ impl Group for Complex {
 }
 
 impl One for Complex {
-    fn one() -> Self {
+    fn one(rows: usize, cols: usize) -> Self {
         Self {
-            re: Real::one(),
-            im: Real::zero(),
+            re: Real::one(rows, cols),
+            im: Real::zero(rows, cols),
         }
     }
 

@@ -8,7 +8,7 @@ pub fn gcd<R>(a: &Integer<R>, b: &Integer<R>) -> Integer<R>
 where
     R: Ring + PartialOrd,
 {
-    if b.equals(&Integer::zero(), 0.) {
+    if b.equals(&Integer::zero(0, 0), 0.) {
         return a.clone();
     }
     gcd(b, &(a.clone() % b.clone()))
